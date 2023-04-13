@@ -71,7 +71,7 @@ paintSprite proc
 
     position:
         cmp cx, 0
-        je end_position                                     
+        je end_position                   c                  
         add bx, 140 ; 320d -> pixel width
         loop position
 
