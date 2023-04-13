@@ -1,14 +1,17 @@
-; Práctica 4 - Arquitectura de Compiladores y ensambladores 1
+; Proyecto 2 - Arquitectura de Compiladores y ensambladores 1
 ; Made By: Damián Ignacio Pena Afre
 ; ID: 202110568
 ; Section: B
-; Description: Excel with ASM
+; Description: Pacman game
 
 ; --------------------- INCLUDES ---------------------
 
 include utils.asm
 include inputs.asm
 include strings.asm
+include sprites.asm
+include vars.asm
+include memory.asm
 
 .model small
 .stack
@@ -18,9 +21,8 @@ include strings.asm
 
 ; --------------------- VARIABLES ---------------------
 
-initialMessage db  "Universidad de San Carlos de Guatemala", 0dh, 0ah,"Facultad de Ingenieria", 0dh, 0ah,"Escuela de Ciencias y Sistemas", 0dh, 0ah,"Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah,"Seccion B", 0dh, 0ah,"Damian Ignacio Pena Afre", 0dh, 0ah,"202110568", 0dh, 0ah,"Presiona ENTER", 0dh, 0ah, "$"
-newLine db 0ah, "$"
-whiteSpace db 20h, "$"
+; - GENERAL -
+mGeneralVariables
 
 ; - STRINGS -
 mStringVariables
@@ -28,29 +30,48 @@ mStringVariables
 ; - INPUTS -
 mInputVariables
 
+; - SPRITES -
+mSprites
+
+; - GAME -
+mGameVariables
+
+; - Files -
+mFilesVariables
+
+; - MEMORY -
+mMemoryBlocks ; *IMPORTANT* This must be the last variable declared
+
 .code
+
+include files.asm
+include game.asm
 
 .startup
     
-    initial_messsage: 
+    initial_messsage:
         mPrint initialMessage
-        mPrint newLine
+        mWaitForEnter
+
+        mov AL, 13
+		mov AH, 00
+		int 10
+
+        mov ax, 2
+        mov cx, 2
+        lea di, sprite_aceman_open
+        call paintSprite
 
         mWaitForEnter
-        mPrint newLine
 
-    datasheet_sequence:
-        mPrintDatasheet
-        mPrint promptIndicator
-        mEvalPromt
 
-        jmp datasheet_sequence
-
-    mOperations ; Operations labels
+    game_sequence:
+        mEndVideoMode   
 
 end_program:
     mov al, 0
     mov ah, 4ch                         
     int 21h
+
 
 end
