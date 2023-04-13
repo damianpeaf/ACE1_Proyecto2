@@ -2,20 +2,42 @@
 ; Description: Paints the objects located on game_board
 graphGameBoard proc 
 
-
-    mov ax, 0
-    mov cx, 0
     lea di, game_board
-    
-    push cx
-    mov cx, 19h ; 25 rows
+    mov cx, 0 ; y coordinate
 
 graph_next_row:
-    mov ax, 0
-    pop bx 
+    mov ax, 0 ; x coordinate
 
 graph_next_col:
 
+    call getGameObject ; get object code
+    cmp dx, 0fh ; empty space
+    jg not_a_wall ; not a wall (or empty space)
+
+    ; Get wall sprite offset
+
+    push ax ; save x coordinate
+
+    lea di, sprite_walls ; di = wall_sprite offset
+    mov ax, dx ; ax = wall type
+    mov bx, sprite_size ; bx = sprite size
+    mul bx ; ax = wall type * sprite size
+    add di, ax ; di = wall_sprite offset + wall type * sprite size
+
+    pop ax ; restore x coordinate
+
+    ; Paint wall sprite
+    call paintSprite
+
+    not_a_wall:
+
+    inc ax ; next column
+    cmp ax, 28h ; 40d columns
+    jne graph_next_col ; not 40d columns
+
+    inc cx ; next row
+    cmp cx, 19h ; 25d rows
+    jne graph_next_row ; not 25d rows
 
 graphGameBoard endp
 
@@ -60,6 +82,12 @@ getGameObject endp
 ;        DI = sprite offset
 paintSprite proc
 
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+
     mov bx, 0 
     mov dl, 08 ; 8 rows
     mul dl ; AX = x * 8
@@ -67,15 +95,9 @@ paintSprite proc
 
     xchg ax, cx ; AX = y; CX = x * 8
     mul dl ; AX = y * 8
-    xchg ax, cx ; AX = x * 8; CX = y * 8
-
-    position:
-        cmp cx, 0
-        je end_position                   c                  
-        add bx, 140 ; 320d -> pixel width
-        loop position
-
-    ; ? BX = x * 8 + y * 8 * 320d
+    mov dx, 140h ; 320d -> pixel width
+    mul dx ; AX = y * 8 * 320d
+    add bx, ax ; bx = x * 8 + y * 8 * 320d
     end_position:
         mov cx, 8 ; 8 rows
     
@@ -104,6 +126,13 @@ paintSprite proc
         sub bx, 8 ; go to the next row on video memory
         add bx, 140 ; 320d -> pixel width
         loop paint_sprite_row
+
+
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
 
     ret
 

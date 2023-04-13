@@ -31,6 +31,7 @@ mStringVariables
 mInputVariables
 
 ; - SPRITES -
+mSpritesInfo
 mSprites
 
 ; - GAME -
@@ -53,20 +54,16 @@ include game.asm
         mPrint initialMessage
         mWaitForEnter
 
-        mov AL, 13
-		mov AH, 00
-		int 10
+        mInitVideoMode
 
-        mov ax, 2
-        mov cx, 2
-        lea di, sprite_aceman_open
-        call paintSprite
+        call graphGameBoard
 
         mWaitForEnter
 
 
     game_sequence:
-        mEndVideoMode   
+        mEndVideoMode
+   
 
 end_program:
     mov al, 0

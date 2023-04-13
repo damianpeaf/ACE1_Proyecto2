@@ -30,7 +30,7 @@ mGameVariables macro
 ; 14  -> Power dot
 ; 15  -> Pacman
 
-game_board db 3E8 dup(0) ; 40d x 25d = 1000d = 3E8h
+game_board db 3E8 dup(6) ; 40d x 25d = 1000d = 3E8h
 informationMessage db "Informacion", 0
 
 endm
