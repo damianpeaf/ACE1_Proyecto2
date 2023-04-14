@@ -54,6 +54,9 @@ include game.asm
         mPrint initialMessage
         mWaitForEnter
 
+        lea dx, firstLevelFile
+        call readLevelFile
+
         mInitVideoMode
 
         call graphGameBoard

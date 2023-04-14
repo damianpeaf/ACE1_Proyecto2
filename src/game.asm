@@ -5,43 +5,71 @@ graphGameBoard proc
     lea di, game_board
     mov cx, 0 ; y coordinate
 
-graph_next_row:
-    mov ax, 0 ; x coordinate
+    graph_next_row:
+        mov ax, 0 ; x coordinate
 
-graph_next_col:
+    graph_next_col:
 
-    call getGameObject ; get object code
-    cmp dx, 0fh ; empty space
-    jg not_a_wall ; not a wall (or empty space)
+        call getGameObject ; get object code
+        cmp dx, 0fh ; empty space
+        jg not_a_wall ; not a wall (or empty space)
 
-    ; Get wall sprite offset
+        ; Get wall sprite offset
 
-    push ax ; save x coordinate
+        push ax ; save x coordinate
 
-    lea di, sprite_walls ; di = wall_sprite offset
-    mov ax, dx ; ax = wall type
-    mov bx, sprite_size ; bx = sprite size
-    mul bx ; ax = wall type * sprite size
-    add di, ax ; di = wall_sprite offset + wall type * sprite size
+        lea di, sprite_walls ; di = wall_sprite offset
+        mov ax, dx ; ax = wall type
+        mov bx, sprite_size ; bx = sprite size
+        mul bx ; ax = wall type * sprite size
+        add di, ax ; di = wall_sprite offset + wall type * sprite size
 
-    pop ax ; restore x coordinate
+        pop ax ; restore x coordinate
 
-    ; Paint wall sprite
-    call paintSprite
+        ; Paint wall sprite
+        call paintSprite
 
-    not_a_wall:
+        not_a_wall:
 
-    inc ax ; next column
-    cmp ax, 28h ; 40d columns
-    jne graph_next_col ; not 40d columns
+        inc ax ; next column
+        cmp ax, 28h ; 40d columns
+        jne graph_next_col ; not 40d columns
 
-    inc cx ; next row
-    cmp cx, 19h ; 25d rows
-    jne graph_next_row ; not 25d rows
+        inc cx ; next row
+        cmp cx, 19h ; 25d rows
+        jne graph_next_row ; not 25d rows
 
 graphGameBoard endp
 
 
+; Description: Sets the object located on game_board
+; Entry: AX = x coordinate
+;        CX = y coordinate
+;        DL = object code
+setGameObject proc
+    push ax
+    push cx
+    push di
+    push dx
+
+    mov dh, 28h ; 40d columns
+    xchg ax, cx ; x <-> y
+
+    mul dh ; y * 40d
+    add cx, ax ; y * 40d + x
+
+    lea di, game_board
+    add di, cx ; di = game_board offset + y * 40d + x
+
+    mov [di], dl ; game_board[y * 40d + x] = object code
+
+    pop dx
+    pop di
+    pop cx
+    pop ax
+
+    ret
+setGameObject endp
 
 ; Description: Gets the code of the object located on game_board
 ; Entry: AX = x coordinate
@@ -146,19 +174,19 @@ printStringScreen proc
     mov bh, 0
     mov bl, 01h
 
-print_next_char:
-    mov al, [si]
-    cmp al, 0
-    je end_print_screen
+    print_next_char:
+        mov al, [si]
+        cmp al, 0
+        je end_print_screen
 
-    inc si
-    mov ah, 0eh
-    int 10h
-    jmp print_next_char
+        inc si
+        mov ah, 0eh
+        int 10h
+        jmp print_next_char
 
-end_print_screen:
-    pop si
-    pop ax
-    ret
+    end_print_screen:
+        pop si
+        pop ax
+        ret
 
 printStringScreen endp
