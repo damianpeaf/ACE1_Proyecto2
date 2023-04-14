@@ -27,9 +27,23 @@ graphGameBoard proc
         pop ax ; restore x coordinate
 
         ; Paint wall sprite
-        call paintSprite
+        jmp paint_object
 
         not_a_wall:
+        lea di, sprite_power_dot
+        cmp dx, 14h ; power dot
+        je paint_object
+
+        lea di, sprite_aceman_close
+        cmp dx, 15h ; > 15d -> Portal
+        jge paint_object
+
+        jmp no_paint_object
+
+        paint_object:
+        call paintSprite
+
+        no_paint_object:
 
         inc ax ; next column
         cmp ax, 28h ; 40d columns
@@ -190,3 +204,64 @@ printStringScreen proc
         ret
 
 printStringScreen endp
+
+
+
+paintAceman proc
+
+
+    mov dl, is_aceman_open
+    cmp dl, 0ffh ; aceman is open
+    je paint_aceman_open
+
+    lea di, sprite_aceman_close
+    xor dx, dx
+    mov dl, aceman_direction
+    add di, dx ; di = sprite_aceman_close + aceman_direction [OFFSET]
+
+    jmp paint_object
+
+    paint_aceman_open:
+    lea di, sprite_aceman_open
+    xor dx, dx
+    mov dl, aceman_direction
+    add di, dx ; di = sprite_aceman_open + aceman_direction [OFFSET]
+
+    paint_object:
+        mov ax, aceman_x
+        mov cx, aceman_y
+        call paintSprite
+
+        call defaultDelay
+
+        mov dl, is_aceman_open
+        not dl
+        mov is_aceman_open, dl ; toggle is_aceman_open
+
+        lea di, sprite_walls ; Empty space
+        call paintSprite ; Paint empty space
+
+    ret         
+paintAceman endp
+
+
+defaultDelay proc
+
+    push bp
+    push si
+
+    mov BP, 03000
+    default_delay_loop_b:		
+        mov SI, 00010
+    default_delay_loop_a:		
+        dec SI
+		cmp SI, 00
+		jne default_delay_loop_a
+		dec BP
+		cmp BP, 00
+		jne default_delay_loop_b
+
+        pop si
+        pop bp
+		ret
+defaultDelay endp

@@ -13,6 +13,8 @@ readLevelFile proc
     jc open_file_error
     mov [filehandle], AX 
 
+    mov ax, 0 ; First line
+    mov fileLine, ax
 
     ; Read {
     mReadLine
@@ -114,9 +116,129 @@ readLevelFile proc
 
     end_wall_loop:
 
+    ; Read ],
+    mReadLine
+    lea si, readStringBuffer
+    mov al, [si]
+    cmp al, ']'
+    jne read_file_error
+
+    ; Read "power-dots":[
+    mLineEquals sPowerDots
+
+    ; Power dots loop
+    power_dots_loop:
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        ; Finish power dots -> ],
+        cmp al, ']'
+        je end_power_dots_loop
+
+        cmp al, '{'
+        jne read_file_error
+
+        mCheckCoordinate
+        dec ax
+        mov cx, bx ; Move y to cx
+        mov dl, 14 ; Power dot
+        call setGameObject
+
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        cmp al, '}'
+        jne read_file_error
+
+        jmp power_dots_loop
+
+    end_power_dots_loop:
+
+    ; Portals
+
+    ; Read "portales":[
+    mLineEquals sPortales
+
+    ; Portals loop
+    mov al, 15 ; First portal
+    mov portalNumber, al
+
+    portal_loop:
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        ; Finish portals -> ],
+        cmp al, ']'
+        je end_portal_loop
+
+        cmp al, '{'
+        jne read_file_error
+
+        ; Read "numero":1,
+
+        mCheckNumberPropertie sNumero
+
+        ; Read "a": { coordinates }
+
+        mLineEquals sA
+
+        mCheckCoordinate
+        dec ax
+        mov cx, bx ; Move y to cx
+        mov dl, portalNumber
+        call setGameObject
+
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        cmp al, '}'
+        jne read_file_error
+
+        ; Read "b": { coordinates }
+
+        mLineEquals sB
+
+        mCheckCoordinate
+        dec ax
+        mov cx, bx ; Move y to cx
+        mov dl, portalNumber
+        call setGameObject
+
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        cmp al, '}'
+        jne read_file_error
+
+        ; ---
+
+        mReadLine
+        lea si, readStringBuffer
+        mov al, [si]
+
+        cmp al, '}'
+        jne read_file_error
+
+        mov dl, portalNumber
+        inc dl
+        mov portalNumber, dl ; Next portal pair
+
+        jmp portal_loop
+
+    end_portal_loop:
+
     jmp close_file
     read_file_error:
         mPrint errorMessage
+        mov ax, fileLine
+        mNumberToString
+        mPrint numberString
+
         mPrint newLine
         lea si, readStringBuffer
         mPrintAddress si

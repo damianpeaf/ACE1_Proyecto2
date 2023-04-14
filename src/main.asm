@@ -56,6 +56,7 @@ include game.asm
 
         lea dx, firstLevelFile
         call readLevelFile
+        mWaitForEnter
 
         mInitVideoMode
 
@@ -64,8 +65,20 @@ include game.asm
         mWaitForEnter
 
 
-    game_sequence:
-        mEndVideoMode
+    game_sequence:		
+		call paintAceman
+
+		; push AX
+		; push CX
+		; call entrada
+		; pop CX
+		; pop AX
+
+        mov dl, endGame
+        cmp dl, 0
+        je game_sequence
+
+    mEndVideoMode
    
 
 end_program:
