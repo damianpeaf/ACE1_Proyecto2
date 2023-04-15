@@ -30,13 +30,19 @@ graphGameBoard proc
         jmp paint_object
 
         not_a_wall:
+
+        lea di, sprite_ace_dot
+        cmp dx, 13h ; ace dot
+        je paint_object
+
         lea di, sprite_power_dot
         cmp dx, 14h ; power dot
         je paint_object
 
-        lea di, sprite_aceman_close
+        lea di, sprite_portal
         cmp dx, 15h ; > 15d -> Portal
         jge paint_object
+
 
         jmp no_paint_object
 
@@ -117,6 +123,62 @@ getGameObject proc
     pop ax
     ret
 getGameObject endp
+
+
+initGhoasts proc
+
+    mov ax, 13; 19d
+    mov cx, 0ah ; 10d
+    mov red_ghoast_x, ax
+    mov red_ghoast_y, cx
+    
+    mov ax, 15
+    mov cx, 0ah
+    mov cyan_ghoast_x, ax
+    mov cyan_ghoast_y, cx
+
+    mov ax, 13; 19d
+    mov cx, 0ch ; 12d
+    mov yellow_ghoast_x, ax
+    mov yellow_ghoast_y, cx
+
+    mov ax, 15
+    mov cx, 0ch
+    mov pink_ghoast_x, ax
+    mov pink_ghoast_y, cx
+
+
+    ret 
+initGhoasts endp
+
+fillAceDots proc
+
+    mov cx, 1 ; initial y coordinate
+
+    fill_next_row:
+        mov ax, 0 ; x coordinate
+
+    fill_next_col:
+
+        call getGameObject ; get object code
+        
+        cmp dx, 0 ; empty space
+        jne pass_object
+
+        mov dl, 13 ; 19d -> ace dots
+        call setGameObject
+
+        pass_object:
+            inc ax ; next column
+            cmp ax, 28h ; 40d columns
+            jne fill_next_col ; not 40d columns
+
+            inc cx ; next row
+            cmp cx, 18h ; 24d rows
+            jne fill_next_row ; not 25d rows
+
+    ret
+fillAceDots endp
 
 
 ; Paints the sprite on video memory
@@ -244,6 +306,31 @@ paintAceman proc
     ret         
 paintAceman endp
 
+paintGhoasts proc
+
+    lea di, sprite_red_ghoast
+    mov ax, red_ghoast_x
+    mov cx, red_ghoast_y
+    call paintSprite
+
+    lea di, sprite_pink_ghoast
+    mov ax, pink_ghoast_x
+    mov cx, pink_ghoast_y
+    call paintSprite
+
+    lea di, sprite_cyan_ghoast
+    mov ax, cyan_ghoast_x
+    mov cx, cyan_ghoast_y
+    call paintSprite
+
+    lea di, sprite_yellow_ghoast
+    mov ax, yellow_ghoast_x
+    mov cx, yellow_ghoast_y
+    call paintSprite
+
+    ret
+paintGhoasts endp
+
 
 defaultDelay proc
 
@@ -368,9 +455,28 @@ moveAceman proc
         cmp dx, 0fh 
         jle not_move_aceman ; Next object is wall
 
+        cmp dx, 13h ; Next object is ace dot
+        je ace_dot_eaten
+
+
+        cmp dx, 15h
+        jge portal_transport
+
         ; TODO: aceman collision with other objects
         not_move_aceman:
             ret
+
+        ace_dot_eaten:
+            mov dx, 0
+            call setGameObject
+            jmp move_aceman
+
+        portal_transport:
+            mov serchead_portal_x, ax
+            mov serchead_portal_y, cx
+            mov serchead_portal_number, dx
+            call searchPortalEnd
+            jmp move_aceman
 
         move_aceman:
             mov aceman_x, ax
@@ -378,3 +484,47 @@ moveAceman proc
             ret
 
 moveAceman endp
+
+
+; Description: looks for x and y coordinates of the end portal
+; Input: DX = Portal ID
+; Output: AX = x coordinate of the end portal
+;         CX = y coordinate of the end portal
+searchPortalEnd proc
+
+    mov cx, 1 ; initial y coordinate
+
+    fill_next_row:
+        mov ax, 0 ; x coordinate
+
+    fill_next_col:
+
+        call getGameObject ; get object code
+
+        cmp dx, serchead_portal_number
+        jne pass_object ; not the portal id
+
+        posible_portal:
+            ; Compare initial x coordinate with the current x coordinate
+            cmp ax, serchead_portal_x
+            jne portal_found
+
+            ; Compare initial y coordinate with the current y coordinate
+            cmp cx, serchead_portal_y
+            jne portal_found
+
+        pass_object:
+            inc ax ; next column
+            cmp ax, 28h ; 40d columns
+            jne fill_next_col ; not 40d columns
+
+            inc cx ; next row
+            cmp cx, 18h ; 24d rows
+            jne fill_next_row ; not 25d rows
+
+        portal_found:
+
+    ret
+searchPortalEnd endp
+
+

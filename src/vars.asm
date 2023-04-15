@@ -120,9 +120,32 @@ aceman_right equ 00 ; Default, its the first sprite of aceman
 aceman_left equ 40 ; 40h = 64d that is the offset of the left sprite
 aceman_up equ 80 ; 80h = 128d that is the offset of the up sprite
 aceman_down equ 0c0h ; 0c0h = 192d that is the offset of the down sprite
+aceman_no_direction equ 1
 
 aceman_direction db aceman_right ; right
 
+; Ghosts
+
+red_ghoast_x dw 0
+red_ghoast_y dw 0
+red_ghoast_direction db aceman_no_direction
+
+cyan_ghoast_x dw 0
+cyan_ghoast_y dw 0
+cyan_ghoast_direction db aceman_no_direction
+
+yellow_ghoast_x dw 0
+yellow_ghoast_y dw 0
+yellow_ghoast_direction db aceman_no_direction
+
+pink_ghoast_x dw 0
+pink_ghoast_y dw 0
+pink_ghoast_direction db aceman_no_direction
+
+; Portals
+serchead_portal_x dw 0
+serchead_portal_y dw 0
+serchead_portal_number dw 0
 
 endm
 

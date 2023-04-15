@@ -60,13 +60,16 @@ include game.asm
 
         mInitVideoMode
 
+        call fillAceDots
         call graphGameBoard
+        call initGhoasts
 
         mWaitForEnter
 
 
     game_sequence:		
 		call paintAceman
+        call paintGhoasts
 
 		call userInput
 
@@ -80,7 +83,7 @@ include game.asm
    
 
 end_program:
-    mov al, 0
+    mov al, 0c
     mov ah, 4ch                         
     int 21h
 
