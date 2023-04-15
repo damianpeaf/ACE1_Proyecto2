@@ -115,6 +115,7 @@ getGameObject proc
     pop di
     pop cx
     pop ax
+    ret
 getGameObject endp
 
 
@@ -209,7 +210,6 @@ printStringScreen endp
 
 paintAceman proc
 
-
     mov dl, is_aceman_open
     cmp dl, 0ffh ; aceman is open
     je paint_aceman_open
@@ -265,3 +265,116 @@ defaultDelay proc
         pop bp
 		ret
 defaultDelay endp
+
+; Detects the user input in game
+userInput proc
+    mov ah, 1
+    int 16h ; get user input
+
+    jz return_input
+
+    cmp ah, 71h ; Q
+    je input_end_game
+
+    cmp ah, 48h ; UP
+    je input_up
+
+    cmp ah, 50h ; DOWN
+    je input_down
+
+    cmp ah, 4bh ; LEFT
+    je input_left
+
+    cmp ah, 4dh ; RIGHT
+    je input_right
+
+    mov ah, 0
+    int 16h ; clear buffer
+    ret
+
+    input_up: 
+        mov ah, aceman_up
+        jmp change_direction
+
+    input_down:
+        mov ah, aceman_down
+        jmp change_direction
+
+    input_left:
+        mov ah, aceman_left
+        jmp change_direction
+
+    input_right:
+        mov ah, aceman_right
+        jmp change_direction
+
+    input_end_game:
+        mov al, 0ffh        
+        mov endGame, al ; toggle endGame
+
+        mov ah, 0
+        int 16h ; clear buffer
+        ret 
+
+    change_direction:
+        mov aceman_direction, ah
+
+        mov ah, 0
+        int 16h ; clear buffer
+    return_input:
+        ret
+
+
+userInput endp
+
+
+; Determines if the aceman can move to the next position
+moveAceman proc
+
+    mov ax, aceman_x
+    mov cx, aceman_y
+
+    mov dh, aceman_direction
+
+    ;down
+    cmp dh, aceman_down
+    jne aceman_move_up
+    inc cx
+    jmp aceman_move_validate
+
+    aceman_move_up:
+        cmp dh, aceman_up
+        jne aceman_move_left
+        dec cx
+        jmp aceman_move_validate
+
+    aceman_move_left:
+        cmp dh, aceman_left
+        jne aceman_move_right
+        dec ax
+        jmp aceman_move_validate
+
+    aceman_move_right:      
+        cmp dh, aceman_right
+        jne aceman_move_validate
+        inc ax
+
+    aceman_move_validate:
+        call getGameObject
+
+        cmp dx, 0 ; Next object is empty space
+        je move_aceman
+
+        cmp dx, 0fh 
+        jle not_move_aceman ; Next object is wall
+
+        ; TODO: aceman collision with other objects
+        not_move_aceman:
+            ret
+
+        move_aceman:
+            mov aceman_x, ax
+            mov aceman_y, cx
+            ret
+
+moveAceman endp

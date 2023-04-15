@@ -121,7 +121,7 @@ aceman_left equ 40 ; 40h = 64d that is the offset of the left sprite
 aceman_up equ 80 ; 80h = 128d that is the offset of the up sprite
 aceman_down equ 0c0h ; 0c0h = 192d that is the offset of the down sprite
 
-aceman_direction db 00 ; right
+aceman_direction db aceman_right ; right
 
 
 endm

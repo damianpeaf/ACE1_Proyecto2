@@ -68,11 +68,9 @@ include game.asm
     game_sequence:		
 		call paintAceman
 
-		; push AX
-		; push CX
-		; call entrada
-		; pop CX
-		; pop AX
+		call userInput
+
+        call moveAceman
 
         mov dl, endGame
         cmp dl, 0
