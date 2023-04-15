@@ -165,6 +165,10 @@ fillAceDots proc
         cmp dx, 0 ; empty space
         jne pass_object
 
+        call isInsideGhostHouse
+        cmp dl, 1 ; inside ghost house
+        je pass_object
+
         mov dl, 13 ; 19d -> ace dots
         call setGameObject
 
@@ -449,6 +453,14 @@ moveAceman proc
     aceman_move_validate:
         call getGameObject
 
+        mov bx, dx
+
+        call isInsideGhostHouse ; * mutates DX
+        cmp dl, 1
+        je not_move_aceman
+
+        mov dx, bx
+
         cmp dx, 0 ; Next object is empty space
         je move_aceman
 
@@ -463,6 +475,9 @@ moveAceman proc
         jge portal_transport
 
         ; TODO: aceman collision with other objects
+
+
+
         not_move_aceman:
             ret
 
@@ -528,3 +543,30 @@ searchPortalEnd proc
 searchPortalEnd endp
 
 
+; Description: Evals if coords are inside ghost house
+; Input: AX = x coordinate
+;        CX = y coordinate
+; Output: DL = 1 if inside ghost house
+
+isInsideGhostHouse proc
+
+    mov dl, 0 ; not inside ghost house
+
+    ; House coords: x = 13h - 15h & y = 0ah - 0ch
+    cmp ax, 13h
+    jl not_inside_ghost_house
+
+    cmp ax, 15h
+    jg not_inside_ghost_house
+
+    cmp cx, 0ah
+    jl not_inside_ghost_house
+
+    cmp cx, 0ch
+    jg not_inside_ghost_house
+
+    mov dl, 1 ; inside ghost house
+
+    not_inside_ghost_house:
+        ret
+isInsideGhostHouse endp
