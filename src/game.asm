@@ -273,7 +273,7 @@ userInput proc
 
     jz return_input
 
-    cmp ah, 71h ; Q
+    cmp al, 1b ; ESC
     je input_end_game
 
     cmp ah, 48h ; UP
