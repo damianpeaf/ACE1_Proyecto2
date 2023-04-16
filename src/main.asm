@@ -59,6 +59,7 @@ include game.asm
     start_game:
 
         mov gamePoints, 0
+        mov aceman_hp, 3
         call getInitialTime
 
         load_first_level:

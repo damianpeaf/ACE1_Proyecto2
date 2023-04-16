@@ -115,6 +115,8 @@ aceman_x dw 0
 aceman_y dw 0
 endGame db 0 ; 0 -> Game is running, 255 -> Game is over
 gamePoints dw 0
+aceman_hp db 3 ; 3 lives
+max_score dw 0
 
 initialTimestamp dw 0 ; in hundredths of seconds
 elapsedTimestamp dw 0 ; in hundredths of seconds
@@ -135,8 +137,9 @@ aceman_no_direction equ 1
 aceman_direction db aceman_right ; right
 
 power_dot_timestamp db 0 ; in seconds
+last_power_dot_timestamp db 0 ; in seconds
 power_dot_timestamp_set db 0 ; 0 | 1
-
+power_dot_time_left db 0ah ; in seconds
 
 ; Ghosts
 

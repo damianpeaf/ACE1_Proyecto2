@@ -59,6 +59,36 @@ graphGameBoard proc
         cmp cx, 19h ; 25d rows
         jne graph_next_row ; not 25d rows
 
+    ; Static elements [score, time, max]
+
+    ; score : row = 0; col = 0
+    mov ax, 0
+    mov cx, 0
+    lea di, sprite_coin
+    call paintSprite
+
+    ; time : row = 0; col = 29
+    mov ax, 01dh ; 29d
+    mov cx, 0
+    lea di, sprite_time
+    call paintSprite
+
+    ; max : row = 24; col = 3
+    mov ax, 10h
+    mov cx, 18h
+    lea di, sprite_plus
+    call paintSprite
+
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 18h ; row
+    mov dl, 11h ; column
+    int 10h
+
+    mov ax, max_score
+    call numberToString
+    mPrint numberString
+
 graphGameBoard endp
 
 
@@ -307,6 +337,18 @@ paintAceman proc
         lea di, sprite_walls ; Empty space
         call paintSprite ; Paint empty space
 
+    ; paint lives
+    mov dl, aceman_hp
+    mov ax, 25h ; 37d
+    mov cx, 18h ; 24d
+    lea di, sprite_hearth
+
+    paint_next_life:
+        call paintSprite
+        inc ax
+        dec dl
+        jnz paint_next_life
+
     ret         
 paintAceman endp
 
@@ -366,12 +408,32 @@ paintGhosts proc
     push cx
     push dx
 
+    ; Set cursor for remaining time
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 18h ; row
+    mov dl, 1h ; column
+    int 10h
+
+    xor ax, ax
+    mov al, power_dot_time_left
+    call numberToString
+    lea si, numberString
+    add si, 4 ; Skip 0000
+    mPrintAddress si
+
     mov ah, 2ch
     int 21h
 
-    sub dh, power_dot_timestamp
-    cmp dh, 0ah ; 10 seconds passed
-    jne end_power_dot
+    ; a second passed
+    mov dl, dh ; Copy seconds
+    cmp dh, last_power_dot_timestamp
+    je end_power_dot
+
+    mov last_power_dot_timestamp, dl
+    dec power_dot_time_left
+
+    jnz end_power_dot
 
     mov is_red_ghost_eatable, 0
     mov is_cyan_ghost_eatable, 0
@@ -379,7 +441,20 @@ paintGhosts proc
     mov is_pink_ghost_eatable, 0
     mov power_dot_timestamp_set, 0
 
+    ; remove icon
+    mov ax, 0
+    mov cx, 18h
+    lea di, sprite_walls ; Empty space
+    call paintSprite ; Paint empty space
+
+    inc ax
+    call paintSprite ; Paint empty space
+
+    inc ax
+    call paintSprite ; Paint empty space
+
     end_power_dot:
+
     pop dx
     pop cx
     pop bx
@@ -671,7 +746,7 @@ printPoints proc
     mov ah, 02h
     mov bh, 0
     mov dh, 0 ; row
-    mov dl, 0 ; column
+    mov dl, 1 ; column
     int 10h
 
     mov ax, gamePoints
@@ -775,7 +850,14 @@ setGhostsEatable proc
     mov ah, 2ch
     int 21h
     mov power_dot_timestamp, dh
+    mov last_power_dot_timestamp, dh
     mov power_dot_timestamp_set, 1
+    mov power_dot_time_left, 0ah ; 10 seconds
+
+    mov ax, 0
+    mov cx, 18h
+    lea di, sprite_eatable_ghost
+    call paintSprite
 
     pop dx
     pop cx
