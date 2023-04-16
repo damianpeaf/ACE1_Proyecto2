@@ -6,6 +6,8 @@ mGeneralVariables macro
     initialMessage db  "Universidad de San Carlos de Guatemala", 0dh, 0ah,"Facultad de Ingenieria", 0dh, 0ah,"Escuela de Ciencias y Sistemas", 0dh, 0ah,"Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah,"Seccion B", 0dh, 0ah,"Damian Ignacio Pena Afre", 0dh, 0ah,"202110568", 0dh, 0ah,"Presiona ENTER", 0dh, 0ah, "$"
     newLine db 0ah, "$"
     whiteSpace db 20h, "$"
+    carryReturn db 0dh, "$"
+    sColon db ':', "$"
 
 endm
 
@@ -112,6 +114,14 @@ dotValue dw 0
 aceman_x dw 0
 aceman_y dw 0
 endGame db 0 ; 0 -> Game is running, 255 -> Game is over
+gamePoints dw 0
+
+initialTimestamp dw 0 ; in hundredths of seconds
+elapsedTimestamp dw 0 ; in hundredths of seconds
+
+elapsedMinutes dw 0
+elapsedSeconds dw 0
+elapsedHundredths dw 0
 
 ; Direction
 is_aceman_open db 0 ; 0 -> Closed, 255 -> Open
@@ -124,23 +134,31 @@ aceman_no_direction equ 1
 
 aceman_direction db aceman_right ; right
 
+power_dot_timestamp db 0 ; in seconds
+power_dot_timestamp_set db 0 ; 0 | 1
+
+
 ; Ghosts
 
-red_ghoast_x dw 0
-red_ghoast_y dw 0
-red_ghoast_direction db aceman_no_direction
+red_ghost_x dw 0
+red_ghost_y dw 0
+red_ghost_direction db aceman_no_direction
+is_red_ghost_eatable db 0
 
-cyan_ghoast_x dw 0
-cyan_ghoast_y dw 0
-cyan_ghoast_direction db aceman_no_direction
+cyan_ghost_x dw 0
+cyan_ghost_y dw 0
+cyan_ghost_direction db aceman_no_direction
+is_cyan_ghost_eatable db 0
 
-yellow_ghoast_x dw 0
-yellow_ghoast_y dw 0
-yellow_ghoast_direction db aceman_no_direction
+yellow_ghost_x dw 0
+yellow_ghost_y dw 0
+yellow_ghost_direction db aceman_no_direction
+is_yellow_ghost_eatable db 0
 
-pink_ghoast_x dw 0
-pink_ghoast_y dw 0
-pink_ghoast_direction db aceman_no_direction
+pink_ghost_x dw 0
+pink_ghost_y dw 0
+pink_ghost_direction db aceman_no_direction
+is_pink_ghost_eatable db 0
 
 ; Portals
 serchead_portal_x dw 0

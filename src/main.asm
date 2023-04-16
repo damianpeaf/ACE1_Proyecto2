@@ -54,6 +54,16 @@ include game.asm
         mPrint initialMessage
         mWaitForEnter
 
+        ; TODO: menus
+
+    start_game:
+
+        mov gamePoints, 0
+        call getInitialTime
+
+        load_first_level:
+
+        ; first level
         lea dx, firstLevelFile
         call readLevelFile
         mWaitForEnter
@@ -62,18 +72,21 @@ include game.asm
 
         call fillAceDots
         call graphGameBoard
-        call initGhoasts
+        call initGhosts
 
         mWaitForEnter
 
 
-    game_sequence:		
+    game_sequence:
+
+        call printGameInformation
 		call paintAceman
-        call paintGhoasts
+        call paintGhosts
 
 		call userInput
 
         call moveAceman
+        ; TODO: move ghosts, separate delay
 
         mov dl, endGame
         cmp dl, 0

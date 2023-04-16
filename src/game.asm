@@ -125,31 +125,31 @@ getGameObject proc
 getGameObject endp
 
 
-initGhoasts proc
+initGhosts proc
 
     mov ax, 13; 19d
     mov cx, 0ah ; 10d
-    mov red_ghoast_x, ax
-    mov red_ghoast_y, cx
+    mov red_ghost_x, ax
+    mov red_ghost_y, cx
     
     mov ax, 15
     mov cx, 0ah
-    mov cyan_ghoast_x, ax
-    mov cyan_ghoast_y, cx
+    mov cyan_ghost_x, ax
+    mov cyan_ghost_y, cx
 
     mov ax, 13; 19d
     mov cx, 0ch ; 12d
-    mov yellow_ghoast_x, ax
-    mov yellow_ghoast_y, cx
+    mov yellow_ghost_x, ax
+    mov yellow_ghost_y, cx
 
     mov ax, 15
     mov cx, 0ch
-    mov pink_ghoast_x, ax
-    mov pink_ghoast_y, cx
+    mov pink_ghost_x, ax
+    mov pink_ghost_y, cx
 
 
     ret 
-initGhoasts endp
+initGhosts endp
 
 fillAceDots proc
 
@@ -310,30 +310,85 @@ paintAceman proc
     ret         
 paintAceman endp
 
-paintGhoasts proc
+paintGhosts proc
 
-    lea di, sprite_red_ghoast
-    mov ax, red_ghoast_x
-    mov cx, red_ghoast_y
-    call paintSprite
+    lea di, sprite_red_ghost
+    cmp is_red_ghost_eatable, 1
+    jne paint_red_ghost
 
-    lea di, sprite_pink_ghoast
-    mov ax, pink_ghoast_x
-    mov cx, pink_ghoast_y
-    call paintSprite
+    lea di, sprite_eatable_ghost
 
-    lea di, sprite_cyan_ghoast
-    mov ax, cyan_ghoast_x
-    mov cx, cyan_ghoast_y
-    call paintSprite
+    paint_red_ghost:
+        mov ax, red_ghost_x
+        mov cx, red_ghost_y
+        call paintSprite
 
-    lea di, sprite_yellow_ghoast
-    mov ax, yellow_ghoast_x
-    mov cx, yellow_ghoast_y
-    call paintSprite
+    lea di, sprite_cyan_ghost
+    cmp is_cyan_ghost_eatable, 1
+    jne paint_cyan_ghost
+
+    lea di, sprite_eatable_ghost
+
+    paint_cyan_ghost:
+        mov ax, cyan_ghost_x
+        mov cx, cyan_ghost_y
+        call paintSprite
+
+    lea di, sprite_yellow_ghost
+    cmp is_yellow_ghost_eatable, 1
+    jne paint_yellow_ghost
+
+    lea di, sprite_eatable_ghost
+
+    paint_yellow_ghost:
+        mov ax, yellow_ghost_x
+        mov cx, yellow_ghost_y
+        call paintSprite
+
+    lea di, sprite_pink_ghost
+    cmp is_pink_ghost_eatable, 1
+    jne paint_pink_ghost
+
+    lea di, sprite_eatable_ghost
+
+    paint_pink_ghost:
+        mov ax, pink_ghost_x
+        mov cx, pink_ghost_y
+        call paintSprite
+
+    ; Check timestamp
+
+    cmp power_dot_timestamp_set, 1
+    jne no_check_timestamp
+
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov ah, 2ch
+    int 21h
+
+    sub dh, power_dot_timestamp
+    cmp dh, 0ah ; 10 seconds passed
+    jne end_power_dot
+
+    mov is_red_ghost_eatable, 0
+    mov is_cyan_ghost_eatable, 0
+    mov is_yellow_ghost_eatable, 0
+    mov is_pink_ghost_eatable, 0
+    mov power_dot_timestamp_set, 0
+
+    end_power_dot:
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    no_check_timestamp:
 
     ret
-paintGhoasts endp
+paintGhosts endp
 
 
 defaultDelay proc
@@ -470,6 +525,8 @@ moveAceman proc
         cmp dx, 13h ; Next object is ace dot
         je ace_dot_eaten
 
+        cmp dx, 14h ; Next object is power dot
+        je power_dot_eaten
 
         cmp dx, 15h
         jge portal_transport
@@ -481,9 +538,25 @@ moveAceman proc
         not_move_aceman:
             ret
 
+        power_dot_eaten:
+            mov dx, 0
+            call setGameObject
+
+            call setGhostsEatable
+
+            mov dx, 14h ; + 20pts
+            add gamePoints, dx
+
+            jmp move_aceman
+
+
         ace_dot_eaten:
             mov dx, 0
             call setGameObject
+
+            mov dx, dotValue
+            add gamePoints, dx
+
             jmp move_aceman
 
         portal_transport:
@@ -570,3 +643,283 @@ isInsideGhostHouse proc
     not_inside_ghost_house:
         ret
 isInsideGhostHouse endp
+
+
+printGameInformation proc
+    call printPoints
+    call printElapsedTime
+    ret
+
+printGameInformation endp
+
+; Description get the initial time of the game
+getInitialTime proc
+
+    call getTimeInHundreths
+    mov initialTimestamp, ax ; save initial timestamp
+    ret 
+getInitialTime endp
+
+
+printPoints proc
+
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 0 ; row
+    mov dl, 0 ; column
+    int 10h
+
+    mov ax, gamePoints
+    call numberToString
+    mPrint numberString
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    ret
+printPoints endp
+
+printElapsedTime proc
+    ; ?PUSHs?
+
+    call getTimeInHundreths
+    sub ax, initialTimestamp 
+    mov elapsedTimestamp, ax ; AX = elapsed time in hundredths
+
+    ; Get minutes
+    mov bx, 1770h ; 60d * 100d = 6000d = 1770h
+    mov cx, 0
+    mov dx, 0
+    div bx
+
+    mov elapsedMinutes, ax ; save minutes
+    mul bx
+
+    sub elapsedTimestamp, ax
+    mov ax, elapsedTimestamp
+
+    ; Get seconds
+    mov bx, 64h ; 60d
+    mov cx, 0
+    mov dx, 0
+    div bx
+
+    mov elapsedSeconds, ax ; save seconds
+    mul bx
+
+    sub elapsedTimestamp, ax
+    mov ax, elapsedTimestamp
+
+    ; Get hundredths
+    mov elapsedHundredths, ax ; save hundredths
+
+    ; Set cursor position
+    ; col 31d = d -> top right corner ; row 0
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 0 ; row
+    mov dl, 1fh ; column
+    int 10h
+
+    ; Print minutes
+    mov ax, elapsedMinutes
+    call numberToString
+    lea di, numberString ; numberString = xxxxxx$
+    add di, 4 ; di = xx$
+    mPrintAddress di
+
+    ; Print colon
+    mPrint sColon
+
+    ; Print seconds
+    mov ax, elapsedSeconds
+    call numberToString
+    lea di, numberString ; numberString = xxxxxx$
+    add di, 4 ; di = xx$
+    mPrintAddress di
+
+    ; Print colon
+    mPrint sColon
+
+    ; Print hundredths
+    mov ax, elapsedHundredths
+    call numberToString
+    lea di, numberString ; numberString = xxxxxx$
+    add di, 4 ; di = xx$
+    mPrintAddress di
+
+    ret
+printElapsedTime endp
+
+
+setGhostsEatable proc
+
+
+    mov is_red_ghost_eatable, 1
+    mov is_cyan_ghost_eatable, 1
+    mov is_pink_ghost_eatable, 1
+    mov is_yellow_ghost_eatable, 1
+
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov ah, 2ch
+    int 21h
+    mov power_dot_timestamp, dh
+    mov power_dot_timestamp_set, 1
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    ret 
+setGhostsEatable endp
+
+
+
+; Description: Converts a sign number of 16 bits to an ascii representation string
+; Input : AX - number to convert
+; Output: DX - 0 if no error, 1 if error
+;         numberString - the string representation of the number
+numberToString proc
+
+    ; REGISTER PROTECTION
+    push ax
+    push bx
+    push cx
+    push si
+    
+    mov cx, 0
+    ; Comparte if its a negative number
+    mov [negativeNumber], 0
+    cmp ax, 0
+    jge convert_positive
+
+    convert_negative:
+        mov [negativeNumber], 1 ; Set the negative number flag to 1
+        inc cx
+
+        ; Convert to positive
+        neg ax
+        jmp convert_positive
+    
+    convert_positive:
+        mov bx, 0ah
+
+        extract_digit:
+            mov dx, 0 ; Clear the dx register [Remainder]
+            div bx ; Divide the AX number by 10 and store the remainder in dx
+            add dl, '0' ; Convert the remainder to ascii
+            push dx ; Push the remainder to the stack
+            inc cx ; Increment the digit counter
+            cmp ax, 0 ; Check if the number is 0
+            jne extract_digit ; If not, extract the next digit
+
+    ; No representable number
+    cmp cx, 6
+    jg representation_error
+
+    ; ------------------- Fill the string -------------------
+    mov si, 0
+
+    ; ! Fill with 0 every digit that is not used <- Change this to fill with spaces
+    mov dx, 6
+    sub dx, cx
+    cmp dx, 0
+    jz set_negative
+
+    fill_with_0:
+        mov numberString[si], '0'
+        inc si
+        dec dx
+        jnz fill_with_0
+
+    set_negative:
+
+    ; If the number is negative, add the '-' sign
+    cmp [negativeNumber], 1
+    jne set_digit
+    mov numberString[si], '-'
+    inc si
+    dec cx
+
+    ; Copy the digits to the string
+    set_digit:
+        pop dx
+        mov numberString[si], dl
+        inc si
+        loop set_digit
+
+    mov dx, 0 ; NO ERROR
+    jmp end_number_string
+
+    representation_error:
+        mPrint numberRepresentationError
+
+        ; empty the stack
+        empty_stack:
+            pop dx
+            loop empty_stack
+
+        mov dx, 1 ; ERROR
+
+    end_number_string:
+        ; REGISTER RESTORATION
+        pop si
+        pop cx
+        pop bx
+        pop ax
+
+        ret
+numberToString endp
+
+; Description: puts in ax, the current time as a sum of minutes, seconds and hundredths, in hundredths
+getTimeInHundreths proc
+
+    mov ah, 2ch
+    int 21h
+
+    xor ax, ax
+    add al, dl ; + hundredths
+
+    push ax
+
+    mov ah, 2ch
+    int 21h
+    xor ax, ax
+    mov al, dh
+    mov dx, 64h ; 100d
+    mul dx
+    mov dx, ax
+
+    pop ax
+
+    add ax, dx ; + seconds
+
+    push ax
+        
+    mov ah, 2ch
+    int 21h
+    xor ax, ax
+    mov al, cl
+    mov dx, 1770h ; 60d * 100d
+    mul dx
+    mov dx, ax
+
+    pop ax
+
+    add ax, dx ; + minutes
+
+
+    ret
+getTimeInHundreths endp
