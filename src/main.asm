@@ -82,11 +82,12 @@ include game.asm
 
         call printGameInformation
 		call paintAceman
-        call paintGhosts
+        ; call paintGhosts
 
 		call userInput
 
         call moveAceman
+        call moveGhosts
         ; TODO: move ghosts, separate delay
 
         mov dl, endGame

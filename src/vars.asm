@@ -117,6 +117,7 @@ endGame db 0 ; 0 -> Game is running, 255 -> Game is over
 gamePoints dw 0
 aceman_hp db 3 ; 3 lives
 max_score dw 0
+random db 0 ; 0 | 1
 
 initialTimestamp dw 0 ; in hundredths of seconds
 elapsedTimestamp dw 0 ; in hundredths of seconds
@@ -142,26 +143,35 @@ power_dot_timestamp_set db 0 ; 0 | 1
 power_dot_time_left db 0ah ; in seconds
 
 ; Ghosts
+last_direction db 0
 
 red_ghost_x dw 0
 red_ghost_y dw 0
 red_ghost_direction db aceman_no_direction
 is_red_ghost_eatable db 0
+has_red_ghost_been_eaten db 0
+is_red_ghost_in_house db 0
 
 cyan_ghost_x dw 0
 cyan_ghost_y dw 0
 cyan_ghost_direction db aceman_no_direction
 is_cyan_ghost_eatable db 0
+has_cyan_ghost_been_eaten db 0
+is_cyan_ghost_in_house db 0
 
 yellow_ghost_x dw 0
 yellow_ghost_y dw 0
 yellow_ghost_direction db aceman_no_direction
 is_yellow_ghost_eatable db 0
+has_yellow_ghost_been_eaten db 0
+is_yellow_ghost_in_house db 0
 
 pink_ghost_x dw 0
 pink_ghost_y dw 0
 pink_ghost_direction db aceman_no_direction
 is_pink_ghost_eatable db 0
+has_pink_ghost_been_eaten db 0
+is_pink_ghost_in_house db 0
 
 ; Portals
 serchead_portal_x dw 0
@@ -185,3 +195,128 @@ mEndVideoMode macro
 
 endm
 
+
+mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
+
+    local end_evaluating_ghost
+
+    cmp in_house, 1
+    jne end_evaluating_ghost
+
+    ; Ghost is in house
+
+    call GenerateRandom
+    cmp random, 9
+    jne no_more_evals
+
+    mov in_house, 0
+
+    ; Change position
+
+    ; ghost house x=20d y=09d
+    push ax
+    push cx
+    push di
+    ; delete sprite from ghost house
+    mov ax, x_pos
+    mov cx, y_pos
+    lea di, sprite_walls
+    call paintSprite
+
+    mov ax, 14h ; 20d
+    mov x_pos, ax
+
+    mov ax, 09h ; 9d
+    mov y_pos, ax
+
+    mov direction, aceman_right
+
+    pop di
+    pop cx
+    pop ax
+
+    jmp no_more_evals
+    end_evaluating_ghost:
+
+endm
+
+
+mEvalGhostMovement macro x_pos, y_pos, direction
+
+    local ghost_move_up, ghost_move_left, ghost_move_right, ghost_move_validate, skip_evaluating_ghost_movement, not_move_ghost, portal_transport, move_ghost, eval_new_direction, ghost_move_down
+
+    mov ax, x_pos
+    mov cx, y_pos
+
+    mov dh, direction
+    mov last_direction, dh
+
+    cmp dh, aceman_no_direction
+    je skip_evaluating_ghost_movement
+
+    ;down
+    ghost_move_down:
+    cmp dh, aceman_down
+    jne ghost_move_up
+    inc cx
+    jmp ghost_move_validate
+
+    ghost_move_up:
+        cmp dh, aceman_up
+        jne ghost_move_left
+        dec cx
+        jmp ghost_move_validate
+
+    ghost_move_left:
+        cmp dh, aceman_left
+        jne ghost_move_right
+        dec ax
+        jmp ghost_move_validate
+
+    ghost_move_right:    
+        inc ax
+
+    ghost_move_validate:
+
+        call isInsideGhostHouse ; * mutates DX
+        cmp dl, 1
+        je not_move_ghost
+
+        call getGameObject
+
+        cmp dx, 0fh 
+        jle not_move_ghost ; Next object is wall
+
+        cmp dx, 15h
+        jge portal_transport
+
+        jmp move_ghost
+
+        not_move_ghost:
+
+            ; random direction
+            mov dh, last_direction
+            
+            ; Initial direction
+            mov ax, x_pos
+            mov cx, y_pos
+
+
+
+            jmp not_move_ghost
+
+        portal_transport:
+            mov serchead_portal_x, ax
+            mov serchead_portal_y, cx
+            mov serchead_portal_number, dx
+            call searchPortalEnd
+            jmp move_ghost
+
+        move_ghost:
+            mov x_pos, ax
+            mov y_pos, cx
+
+
+    skip_evaluating_ghost_movement:
+
+endm

@@ -157,6 +157,8 @@ getGameObject endp
 
 initGhosts proc
 
+    ; Position
+
     mov ax, 13; 19d
     mov cx, 0ah ; 10d
     mov red_ghost_x, ax
@@ -177,6 +179,27 @@ initGhosts proc
     mov pink_ghost_x, ax
     mov pink_ghost_y, cx
 
+    ; other vars
+
+    mov red_ghost_direction, aceman_no_direction
+    mov is_red_ghost_eatable, 0
+    mov has_red_ghost_been_eaten, 0
+    mov is_red_ghost_in_house, 1
+
+    mov cyan_ghost_direction, aceman_no_direction
+    mov is_cyan_ghost_eatable, 0
+    mov has_cyan_ghost_been_eaten, 0
+    mov is_cyan_ghost_in_house, 1
+
+    mov yellow_ghost_direction, aceman_no_direction
+    mov is_yellow_ghost_eatable, 0
+    mov has_yellow_ghost_been_eaten, 0
+    mov is_yellow_ghost_in_house, 1
+
+    mov pink_ghost_direction, aceman_no_direction
+    mov is_pink_ghost_eatable, 0
+    mov has_pink_ghost_been_eaten, 0
+    mov is_pink_ghost_in_house, 1
 
     ret 
 initGhosts endp
@@ -328,6 +351,9 @@ paintAceman proc
         mov cx, aceman_y
         call paintSprite
 
+        ; paint ghost
+        call paintGhosts
+
         call defaultDelay
 
         mov dl, is_aceman_open
@@ -335,7 +361,27 @@ paintAceman proc
         mov is_aceman_open, dl ; toggle is_aceman_open
 
         lea di, sprite_walls ; Empty space
+        
+        mov ax, aceman_x
+        mov cx, aceman_y
         call paintSprite ; Paint empty space
+
+        mov ax, red_ghost_x
+        mov cx, red_ghost_y
+        call paintSprite
+
+        mov ax, cyan_ghost_x
+        mov cx, cyan_ghost_y
+        call paintSprite
+
+        mov ax, yellow_ghost_x
+        mov cx, yellow_ghost_y
+        call paintSprite
+
+        mov ax, pink_ghost_x
+        mov cx, pink_ghost_y
+        call paintSprite
+
 
     ; paint lives
     mov dl, aceman_hp
@@ -619,8 +665,16 @@ moveAceman proc
 
             call setGhostsEatable
 
-            mov dx, 14h ; + 20pts
-            add gamePoints, dx
+            push ax
+            push cx
+
+            mov ax, dotValue
+            mov dx, 5h ; multiply by 5
+            mul dx
+            add gamePoints, ax
+
+            pop cx
+            pop ax
 
             jmp move_aceman
 
@@ -852,7 +906,7 @@ setGhostsEatable proc
     mov power_dot_timestamp, dh
     mov last_power_dot_timestamp, dh
     mov power_dot_timestamp_set, 1
-    mov power_dot_time_left, 0ah ; 10 seconds
+    mov power_dot_time_left, 0ch ; 12d seconds
 
     mov ax, 0
     mov cx, 18h
@@ -1005,3 +1059,55 @@ getTimeInHundreths proc
 
     ret
 getTimeInHundreths endp
+
+; Description: Gives a random number between 0 and 9
+; Input: None
+; Output: random - random number
+GenerateRandom proc
+    
+    push ax
+    push bx
+    push cx
+    push dx
+
+    ; generates a random number between 0 and 1
+    mov ah, 2ch
+    int 21h
+
+    mov ax, dx
+    xor dx, dx
+    mov cx, 0ah ; 10d
+    div cx
+
+    mov random, dl
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    
+    ret
+GenerateRandom endp
+
+
+; Description: Moves ghost
+; Input: None
+; Output: Nonve
+moveGhosts proc
+    
+    mEvalReleaseGhost is_red_ghost_in_house, red_ghost_x, red_ghost_y, red_ghost_direction
+    mEvalReleaseGhost is_cyan_ghost_in_house, cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
+    mEvalReleaseGhost is_pink_ghost_in_house, pink_ghost_x, pink_ghost_y, pink_ghost_direction
+    mEvalReleaseGhost is_yellow_ghost_in_house, yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
+
+    no_more_evals:
+
+    ; Movement
+
+    mEvalGhostMovement red_ghost_x, red_ghost_y, red_ghost_direction
+    mEvalGhostMovement cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
+    mEvalGhostMovement pink_ghost_x, pink_ghost_y, pink_ghost_direction
+    mEvalGhostMovement yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
+
+    ret
+moveGhosts endp
