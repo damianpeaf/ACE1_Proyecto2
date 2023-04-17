@@ -143,7 +143,6 @@ power_dot_timestamp_set db 0 ; 0 | 1
 power_dot_time_left db 0ah ; in seconds
 
 ; Ghosts
-last_direction db 0
 
 red_ghost_x dw 0
 red_ghost_y dw 0
@@ -178,6 +177,7 @@ serchead_portal_x dw 0
 serchead_portal_y dw 0
 serchead_portal_number dw 0
 
+RandomSeed dw 0
 endm
 
 
@@ -206,7 +206,7 @@ mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
     ; Ghost is in house
 
     call GenerateRandom
-    cmp random, 9
+    cmp random, 5
     jne no_more_evals
 
     mov in_house, 0
@@ -249,7 +249,6 @@ mEvalGhostMovement macro x_pos, y_pos, direction
     mov cx, y_pos
 
     mov dh, direction
-    mov last_direction, dh
 
     cmp dh, aceman_no_direction
     je skip_evaluating_ghost_movement
@@ -278,11 +277,17 @@ mEvalGhostMovement macro x_pos, y_pos, direction
 
     ghost_move_validate:
 
+        call getGameObject
+        mov bx, dx
+
         call isInsideGhostHouse ; * mutates DX
         cmp dl, 1
         je not_move_ghost
 
-        call getGameObject
+        mov dx, bx
+
+        cmp dx, 0 ; Next object is empty space
+        je move_ghost
 
         cmp dx, 0fh 
         jle not_move_ghost ; Next object is wall
@@ -294,14 +299,31 @@ mEvalGhostMovement macro x_pos, y_pos, direction
 
         not_move_ghost:
 
-            ; random direction
-            mov dh, last_direction
-            
             ; Initial direction
+            call GenerateRandom
+
             mov ax, x_pos
             mov cx, y_pos
 
+            mov dh, aceman_down
+            mov direction, dh
+            cmp random, 1
+            je ghost_move_down
 
+            mov dh, aceman_up
+            mov direction, dh
+            cmp random, 2
+            je ghost_move_up
+            
+            mov dh, aceman_left
+            mov direction, dh
+            cmp random, 3   
+            je ghost_move_left
+
+            mov dh, aceman_right
+            mov direction, dh
+            cmp random, 4
+            je ghost_move_right
 
             jmp not_move_ghost
 
@@ -318,5 +340,29 @@ mEvalGhostMovement macro x_pos, y_pos, direction
 
 
     skip_evaluating_ghost_movement:
+
+endm
+
+
+mDeleteGhost macro x_pos, y_pos
+
+    local restore_sprite
+
+    mov ax, x_pos
+    mov cx, y_pos
+
+    call getGameObject
+    lea di, sprite_ace_dot
+    cmp dx, 13h
+    je restore_sprite
+
+    lea di, sprite_power_dot
+    cmp dx, 14h
+    je restore_sprite
+
+    lea di, sprite_walls ; white space
+
+    restore_sprite:
+    call paintSprite
 
 endm

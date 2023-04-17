@@ -366,22 +366,11 @@ paintAceman proc
         mov cx, aceman_y
         call paintSprite ; Paint empty space
 
-        mov ax, red_ghost_x
-        mov cx, red_ghost_y
-        call paintSprite
-
-        mov ax, cyan_ghost_x
-        mov cx, cyan_ghost_y
-        call paintSprite
-
-        mov ax, yellow_ghost_x
-        mov cx, yellow_ghost_y
-        call paintSprite
-
-        mov ax, pink_ghost_x
-        mov cx, pink_ghost_y
-        call paintSprite
-
+        ; Delete ghost
+        mDeleteGhost red_ghost_x, red_ghost_y
+        mDeleteGhost cyan_ghost_x, cyan_ghost_y
+        mDeleteGhost yellow_ghost_x, yellow_ghost_y
+        mDeleteGhost pink_ghost_x, pink_ghost_y
 
     ; paint lives
     mov dl, aceman_hp
@@ -1070,16 +1059,25 @@ GenerateRandom proc
     push cx
     push dx
 
-    ; generates a random number between 0 and 1
-    mov ah, 2ch
-    int 21h
+    mov bh, 0
+    mov bl, 9
+    call DoRangedRandom
+    mov random,al
+    mov ah, 0
 
-    mov ax, dx
-    xor dx, dx
-    mov cx, 0ah ; 10d
-    div cx
+    ; call numberToString
+    ; mPrint numberString
 
-    mov random, dl
+    ; ; generates a random number between 0 and 1
+    ; mov ah, 2ch
+    ; int 21h
+
+    ; mov ax, dx
+    ; xor dx, dx
+    ; mov cx, 0ah ; 10d
+    ; div cx
+
+    ; mov random, dl
 
     pop dx
     pop cx
@@ -1105,9 +1103,86 @@ moveGhosts proc
     ; Movement
 
     mEvalGhostMovement red_ghost_x, red_ghost_y, red_ghost_direction
+
     mEvalGhostMovement cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
+
     mEvalGhostMovement pink_ghost_x, pink_ghost_y, pink_ghost_direction
+    
     mEvalGhostMovement yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
 
     ret
 moveGhosts endp
+
+
+DoRandomByte1:
+	mov al,cl			;Get 1st seed
+DoRandomByte1b:
+	ror al,1			;Rotate Right
+	ror al,1
+	xor al,cl			;Xor 1st Seed
+	ror al,1
+	ror al,1			;Rotate Right
+	xor al,ch			;Xor 2nd Seed
+	ror al,1			;Rotate Right
+ 	xor al,9dh	;Xor Constant
+	xor al,cl			;Xor 1st seed
+	ret
+
+DoRandomByte2:
+	mov bx,OFFSET Randoms1	
+	mov ah,0
+	mov al,ch		
+    xor al, 0bh
+    and al, 0fh
+
+	mov si,ax
+	mov dh,[bx+si]		;Get Byte from LUT 1
+	
+	call DoRandomByte1	
+	and al,0fh		;Convert random number from 1st 
+	
+	mov bx,OFFSET Randoms2	;geneerator to Lookup
+	mov si,ax
+	mov al,[bx+si]		;Get Byte from LUT2
+	
+	xor al,dh				;Xor 1st lookup
+	ret
+	
+	
+DoRandom:			;RND outputs to A (no input)
+	push bx
+	push cx
+	push dx
+		mov cx,word PTR [RandomSeed]    ;Get and update
+		inc cx							  	  ;Random Seed
+		mov word PTR [RandomSeed],cx
+		call DoRandomWord
+		mov al,dl
+		xor al,dh
+	pop dx
+	pop cx
+	pop bx
+	ret
+	
+DoRandomWord:		;Return Random pair in HL from Seed BC
+	call DoRandomByte1		;Get 1st byte
+	mov dh,al
+	push dx
+	push cx
+	push bx
+		call DoRandomByte2	;Get 2nd byte
+	pop bx
+	pop cx
+	pop dx
+	mov dl,al
+	inc cx
+	ret	
+	
+	
+DoRangedRandom: 		;Return a value between B and C
+	call DoRandom
+	cmp AL,BH
+	jc DoRangedRandom
+	cmp AL,BL
+	jnc DoRangedRandom
+	ret
