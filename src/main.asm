@@ -84,15 +84,19 @@ Randoms2:
 
 
     game_sequence:
-
         call printGameInformation
 		call paintAceman
+		
+        call userInput
 
-		call userInput
+        mov check_ghost_collission, 1
 
-        call moveAceman
         call moveGhosts
+        call ghostsCollission
+        call moveAceman
+        call ghostsCollission
         ; TODO: move ghosts, separate delay
+
 
         mov dl, endGame
         cmp dl, 0

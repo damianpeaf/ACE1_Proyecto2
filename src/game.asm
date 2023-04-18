@@ -372,6 +372,18 @@ paintAceman proc
         mDeleteGhost yellow_ghost_x, yellow_ghost_y
         mDeleteGhost pink_ghost_x, pink_ghost_y
 
+    ; reset lives
+    mov dl, 3
+    mov ax, 25h ; 37d
+    mov cx, 18h ; 24d
+    lea di, sprite_walls
+
+    reset_next_life:
+        call paintSprite
+        inc ax
+        dec dl
+        jnz reset_next_life
+
     ; paint lives
     mov dl, aceman_hp
     mov ax, 25h ; 37d
@@ -616,6 +628,7 @@ moveAceman proc
         inc ax
 
     aceman_move_validate:
+    
         call getGameObject
 
         mov bx, dx
@@ -643,8 +656,7 @@ moveAceman proc
 
         ; TODO: aceman collision with other objects
 
-
-
+ 
         not_move_aceman:
             ret
 
@@ -879,6 +891,8 @@ printElapsedTime endp
 
 setGhostsEatable proc
 
+    ; todo: increase speed of aceman
+    mov eaten_ghosts_in_a_row, 0
 
     mov is_red_ghost_eatable, 1
     mov is_cyan_ghost_eatable, 1
@@ -1110,9 +1124,41 @@ moveGhosts proc
     
     mEvalGhostMovement yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
 
+    ; collision
+
     ret
 moveGhosts endp
 
+; Description: Evaluates the ghosts collision with pacman
+; Input: none
+; Output: none
+ghostsCollission proc
+
+    cmp check_ghost_collission, 0
+    je no_more_evals
+    ; red
+    mov house_return_x, 13h
+    mov house_return_y, 0ah
+    mEvalGhostCollission red_ghost_x, red_ghost_y, is_red_ghost_eatable, has_red_ghost_been_eaten, is_red_ghost_in_house, red_ghost_direction
+
+    ; cyan
+    mov house_return_x, 15h
+    mov house_return_y, 0ah
+    mEvalGhostCollission cyan_ghost_x, cyan_ghost_y, is_cyan_ghost_eatable, has_cyan_ghost_been_eaten, is_cyan_ghost_in_house, cyan_ghost_direction
+
+    ; yellow
+    mov house_return_x, 13h
+    mov house_return_y, 0ch
+    mEvalGhostCollission yellow_ghost_x, yellow_ghost_y, is_yellow_ghost_eatable, has_yellow_ghost_been_eaten, is_yellow_ghost_in_house, yellow_ghost_direction
+
+    ; pink
+    mov house_return_x, 15h
+    mov house_return_y, 0ch
+    mEvalGhostCollission pink_ghost_x, pink_ghost_y, is_pink_ghost_eatable, has_pink_ghost_been_eaten, is_pink_ghost_in_house, pink_ghost_direction
+    
+    no_more_evals:
+    ret
+ghostsCollission endp
 
 DoRandomByte1:
 	mov al,cl			;Get 1st seed

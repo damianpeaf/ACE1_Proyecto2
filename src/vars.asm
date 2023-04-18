@@ -144,6 +144,12 @@ power_dot_time_left db 0ah ; in seconds
 
 ; Ghosts
 
+check_ghost_collission db 0 ; 0 | 1
+ghost_points dw 64h ; 100d
+eaten_ghosts_in_a_row db 0 
+house_return_x dw 0
+house_return_y dw 0
+
 red_ghost_x dw 0
 red_ghost_y dw 0
 red_ghost_direction db aceman_no_direction
@@ -364,5 +370,64 @@ mDeleteGhost macro x_pos, y_pos
 
     restore_sprite:
     call paintSprite
+
+endm
+
+
+mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, direction
+
+    local no_ghost_collission, decrease_lives
+
+    je no_ghost_collission
+
+    ; Same position as aceman
+    mov ax, aceman_x
+    cmp pos_x, ax
+    jne no_ghost_collission
+
+    mov ax, aceman_y
+    cmp pos_y, ax
+    jne no_ghost_collission
+
+    mov check_ghost_collission, 0
+    ; Ghost is not eatable
+    cmp eatable, 0
+    je decrease_lives
+
+    ; Ghost is eatable
+    mov has_been_eaten, 1
+    mov eatable, 0
+    mov is_in_house, 1
+
+    ; increase score
+    inc eaten_ghosts_in_a_row
+    mov ax, ghost_points
+    xor dx, dx
+    xor bx, bx
+    mov bl, eaten_ghosts_in_a_row
+    mul bx
+
+    add gamePoints, ax
+
+    ; move ghost to ghost house
+    mDeleteGhost pos_x, pos_y
+    mov ax, house_return_x
+    mov pos_x, ax
+    mov ax, house_return_y
+    mov pos_y, ax
+    mov direction, aceman_no_direction
+
+    jmp no_ghost_collission
+    decrease_lives:
+        dec aceman_hp
+        cmp aceman_hp, 0
+        jne no_ghost_collission
+
+        ; Game over
+        mov al, 0ffh        
+        mov endGame, al ; toggle endGame
+
+
+    no_ghost_collission:
 
 endm
