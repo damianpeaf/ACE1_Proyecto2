@@ -8,6 +8,7 @@ mGeneralVariables macro
     whiteSpace db 20h, "$"
     carryReturn db 0dh, "$"
     sColon db ':', "$"
+    sDeveloper db "Desarrollador: Damian Pena - 202110568$"
 
 endm
 
@@ -40,6 +41,8 @@ mFilesVariables macro
     sNumero db '"numero"'
     sA db '"a":{'
     sB db '"b":{'
+    sCurrentLevel db 'Nivel: $'
+    sCurrentPlayer db 'Jugador: $'
 
 endm
 
@@ -107,13 +110,18 @@ mGameVariables macro
 ; 14  -> Power dot
 ; 15 > Portal's pair
 
+currentPlayer db "Damian$"
+
 game_board db 3E8 dup(0) ; 40d x 25d = 1000d = 3E8h
-informationMessage db "Informacion", 0
+pauseMessage db "Pausa$"
+resumeInfo db "Presiona ENTER para resumir$"
+quitInfo db "Presiona 'q' para salir$"
 currentLevel dw 0
 dotValue dw 0
 aceman_x dw 0
 aceman_y dw 0
 endGame db 0 ; 0 -> Game is running, 255 -> Game is over
+pauseGame db 0 ; 0 -> Game is running, 255 -> Game is paused
 gamePoints dw 0
 aceman_hp db 3 ; 3 lives
 max_score dw 0
@@ -440,5 +448,55 @@ mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, d
 
 
     no_ghost_collission:
+
+endm
+
+
+mPauseOptions macro
+
+    local options_loop, return_input, input_end_game, input_resume_game
+
+    options_loop:
+        mov ah, 1
+        int 16h ; get user input
+
+        jz return_input
+        
+        ; q
+        cmp al, 71h
+        je input_end_game
+
+        ; Enter
+        cmp al, 0dh
+        je input_resume_game
+
+        mov ah, 0
+        int 16h 
+        jmp options_loop
+
+        input_end_game: 
+            mov al, 1
+            mov endGame, al
+
+            mov al, 0
+            mov pauseGame, al
+
+            mov ah, 0
+            int 16h
+
+            jmp exit_game
+
+        input_resume_game:
+            mov al, 0
+            mov pauseGame, al
+
+            mov ah, 0
+            int 16h
+
+            call graphGameBoard
+            jmp game_sequence
+
+        return_input:
+            jmp options_loop
 
 endm

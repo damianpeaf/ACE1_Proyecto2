@@ -300,33 +300,6 @@ paintSprite proc
 
 paintSprite endp
 
-printStringScreen proc
-    push ax
-    push si
-
-    mov ax, 0eh
-    mov bh, 0
-    mov bl, 01h
-
-    print_next_char:
-        mov al, [si]
-        cmp al, 0
-        je end_print_screen
-
-        inc si
-        mov ah, 0eh
-        int 10h
-        jmp print_next_char
-
-    end_print_screen:
-        pop si
-        pop ax
-        ret
-
-printStringScreen endp
-
-
-
 paintAceman proc
 
     mov dl, is_aceman_open
@@ -542,7 +515,7 @@ userInput proc
     jz return_input
 
     cmp al, 1b ; ESC
-    je input_end_game
+    je input_pause_game
 
     cmp ah, 48h ; UP
     je input_up
@@ -576,9 +549,9 @@ userInput proc
         mov ah, aceman_right
         jmp change_direction
 
-    input_end_game:
-        mov al, 0ffh        
-        mov endGame, al ; toggle endGame
+    input_pause_game:
+        mov al, 1        
+        mov pauseGame, al ; toggle endGame
 
         mov ah, 0
         int 16h ; clear buffer
@@ -891,9 +864,9 @@ printElapsedTime endp
 
 setGhostsEatable proc
 
-    ; todo: increase speed of aceman
     mov eaten_ghosts_in_a_row, 0
 
+    ; todo: use has_XXXXXX_ghost_been_eaten for this
     mov is_red_ghost_eatable, 1
     mov is_cyan_ghost_eatable, 1
     mov is_pink_ghost_eatable, 1
@@ -1232,3 +1205,192 @@ DoRangedRandom: 		;Return a value between B and C
 	cmp AL,BL
 	jnc DoRangedRandom
 	ret
+
+
+; Description: Clears the screen
+; Input: None
+; Output: None
+clearScreen proc
+    
+    push ds ; save ds
+
+    mov dx, 0A000h ; video memory
+    mov ds, dx ; ds = video memory
+    mov bx, 0 ; start at 0
+    mov al, 0
+
+    clear_screen_loop:
+        mov [BX], al ; clear screen
+        inc bx ; next column on video memory
+        cmp bx, 0fa00h ; end of screen
+        jne clear_screen_loop
+    
+    pop ds ; restore ds
+
+    ret
+clearScreen endp
+
+; Description: Shows the pre-game information
+; Input: None
+; Output: None
+showPregameInfo proc
+    
+    call clearScreen
+    
+    ; Ace dots
+    mov ax, 1
+    mov cx, 2
+    lea di, sprite_ace_dot
+    call paintSprite
+
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 2 ; row
+    mov dl, 3h ; column
+    int 10h
+
+    mov ax, dotValue
+    call numberToString
+    mPrint numberString
+    
+    ; Power dots
+
+    mov ax, 1
+    mov cx, 3
+    lea di, sprite_power_dot
+    call paintSprite
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 3 ; row
+    mov dl, 3h ; column
+    int 10h
+
+    mov ax, dotValue
+    xor dx, dx
+    mov bx, 5 ; multiplier
+    mul bx
+    call numberToString
+    mPrint numberString
+
+    ; Ghosts
+    
+    mov ax, 1
+    mov cx, 4
+    lea di, sprite_red_ghost
+    call paintSprite
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 4 ; row
+    mov dl, 3h ; column
+    int 10h
+
+    mov ax, ghost_points
+    call numberToString
+    mPrint numberString
+
+    ; Game points
+
+    mov ax, 1
+    mov cx, 5
+    lea di, sprite_coin
+    call paintSprite
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 5 ; row
+    mov dl, 3h ; column
+    int 10h
+
+    mov ax, gamePoints
+    call numberToString
+    mPrint numberString
+
+    ; Current level
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 6 ; row
+    mov dl, 1h ; column
+    int 10h
+
+    mPrint sCurrentLevel
+
+    mov ax, currentLevel
+    call numberToString
+    lea di, numberString
+    add di, 5 ; skip "00000x"
+    mPrintAddress di
+
+    ; Lives
+
+    mov ax, 1
+    mov cx, 7
+    lea di, sprite_hearth
+    call paintSprite
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 7 ; row
+    mov dl, 3h ; column
+    int 10h
+
+    xor ax, ax
+    mov al, aceman_hp
+    call numberToString
+    lea di, numberString
+    add di, 5 ; skip "00000x"
+    mPrintAddress di
+
+    ; Username
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 8 ; row
+    mov dl, 1h ; column
+    int 10h
+
+    mPrint sCurrentPlayer
+    mPrint currentPlayer
+
+    ; Developer
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 9 ; row
+    mov dl, 1h ; column
+    int 10h
+
+    mPrint sDeveloper
+
+    ret
+showPregameInfo endp
+
+pauseTitle proc
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 0 ; row
+    mov dl, 11h ; column
+    int 10h
+    mPrint pauseMessage
+
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 0ch ; row
+    mov dl, 5 ; column
+    int 10h
+
+    mPrint resumeInfo
+
+    
+    mov ah, 02h
+    mov bh, 0
+    mov dh, 0dh ; row
+    mov dl, 8h ; column
+    int 10h
+
+    mPrint quitInfo
+
+    ret
+ pauseTitle endp

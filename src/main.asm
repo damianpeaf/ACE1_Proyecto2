@@ -63,26 +63,28 @@ Randoms2:
 
     start_game:
 
-        mov gamePoints, 0
+        mInitVideoMode
         mov aceman_hp, 3
+        mov gamePoints, 0
+        mov pauseGame, 0
+        mov endGame, 0
         call getInitialTime
 
-        load_first_level:
+        load_level:
 
-        ; first level
-        lea dx, firstLevelFile
+        ; load level
+        lea dx, firstLevelFile ; <- Change this to load different levels
         call readLevelFile
-        mWaitForEnter
 
-        mInitVideoMode
+        ; Show pregamescreen
+        call showPregameInfo
+        mWaitForEnter
 
         call fillAceDots
+
+        call clearScreen
         call graphGameBoard
         call initGhosts
-
-        mWaitForEnter
-
-
     game_sequence:
         call printGameInformation
 		call paintAceman
@@ -95,15 +97,25 @@ Randoms2:
         call ghostsCollission
         call moveAceman
         call ghostsCollission
-        ; TODO: move ghosts, separate delay
 
+        mov dl, pauseGame
+        cmp dl, 1
+        je pause_menu
 
         mov dl, endGame
         cmp dl, 0
         je game_sequence
 
-    mEndVideoMode
-   
+        exit_game:
+        mEndVideoMode
+        ; Register score
+        jmp end_program ; <- return to main menu
+
+        pause_menu:
+            call showPregameInfo
+            call pauseTitle
+            mPauseOptions
+
 
 end_program:
     mov al, 0c

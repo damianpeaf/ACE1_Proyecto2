@@ -333,8 +333,8 @@ readOneLineOfFile proc
         jmp read_line_loop
 
     finish_read_line:
-        mPrint readStringBuffer
-        mPrint newLine
+        ; mPrint readStringBuffer
+        ; mPrint newLine
 
         mov dx, 0
         jmp end_read_line
