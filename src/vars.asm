@@ -376,7 +376,7 @@ endm
 
 mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, direction
 
-    local no_ghost_collission, decrease_lives
+    local no_ghost_collission, decrease_lives, add_score, bonus_score
 
     je no_ghost_collission
 
@@ -400,14 +400,25 @@ mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, d
     mov is_in_house, 1
 
     ; increase score
-    inc eaten_ghosts_in_a_row
+    
     mov ax, ghost_points
-    xor dx, dx
-    xor bx, bx
-    mov bl, eaten_ghosts_in_a_row
-    mul bx
+    xor cx, cx
+    mov cl, eaten_ghosts_in_a_row
+    mov bx, 2h ; double points
 
+    bonus_score:
+        cmp cx, 0
+        je add_score
+
+        xor dx, dx
+        mul bx
+
+        dec cx
+        jmp bonus_score
+
+    add_score:
     add gamePoints, ax
+    inc eaten_ghosts_in_a_row
 
     ; move ghost to ghost house
     mDeleteGhost pos_x, pos_y
