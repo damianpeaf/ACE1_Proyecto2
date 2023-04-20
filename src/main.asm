@@ -78,6 +78,8 @@ Randoms2:
         lea dx, firstLevelFile ; <- Change this to load different levels
         call readLevelFile
 
+        call acemanRandomInitialDirection
+
         ; Show pregamescreen
         call showPregameInfo
         mWaitForEnter

@@ -980,7 +980,6 @@ setGhostsEatable proc
 
     mov eaten_ghosts_in_a_row, 0
 
-    ; todo: use has_XXXXXX_ghost_been_eaten for this
     mov is_red_ghost_eatable, 1
     mov is_cyan_ghost_eatable, 1
     mov is_pink_ghost_eatable, 1
@@ -1158,26 +1157,22 @@ GenerateRandom proc
     push bx
     push cx
     push dx
+    
+    mov ah, 2ch
+    int 21h
+
+    mov ax, dx
+    mov dx, 0
+    mov bx, 9
+    div bx
+    inc dx
 
     mov bh, 0
-    mov bl, 9
+    mov bl, dl
     call DoRangedRandom
     mov random,al
+
     mov ah, 0
-
-    ; call numberToString
-    ; mPrint numberString
-
-    ; ; generates a random number between 0 and 1
-    ; mov ah, 2ch
-    ; int 21h
-
-    ; mov ax, dx
-    ; xor dx, dx
-    ; mov cx, 0ah ; 10d
-    ; div cx
-
-    ; mov random, dl
 
     pop dx
     pop cx
@@ -1533,3 +1528,32 @@ resetGameBoard proc
 
     ret
  resetGameBoard endp
+
+acemanRandomInitialDirection proc
+
+    compute_direction_random:
+
+    call GenerateRandom
+
+    mov aceman_direction, aceman_right
+    cmp random, 2
+    je end_initial_direction
+
+    mov aceman_direction, aceman_left
+    cmp random, 3
+    je end_initial_direction
+
+    mov aceman_direction, aceman_up
+    cmp random, 4
+    je end_initial_direction
+
+    mov aceman_direction, aceman_down
+    cmp random, 5
+    je end_initial_direction
+
+    jmp compute_direction_random
+
+    end_initial_direction:
+
+    ret
+acemanRandomInitialDirection endp 

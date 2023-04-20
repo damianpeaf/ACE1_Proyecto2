@@ -220,7 +220,7 @@ endm
 
 mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
 
-    local end_evaluating_ghost
+    local end_evaluating_ghost, compute_direction_random, end_initial_direction
 
     cmp in_house, 1
     jne end_evaluating_ghost
@@ -251,7 +251,29 @@ mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
     mov ax, 09h ; 9d
     mov y_pos, ax
 
-    mov direction, aceman_right
+    compute_direction_random:
+
+        call GenerateRandom
+
+        mov direction, aceman_right
+        cmp random, 2
+        je end_initial_direction
+
+        mov direction, aceman_left
+        cmp random, 3
+        je end_initial_direction
+
+        mov direction, aceman_up
+        cmp random, 4
+        je end_initial_direction
+
+        mov direction, aceman_down
+        cmp random, 5
+        je end_initial_direction
+
+        jmp compute_direction_random
+
+    end_initial_direction:
 
     pop di
     pop cx
