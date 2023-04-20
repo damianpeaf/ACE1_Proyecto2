@@ -162,34 +162,40 @@ red_ghost_x dw 0
 red_ghost_y dw 0
 red_ghost_direction db aceman_no_direction
 is_red_ghost_eatable db 0
-has_red_ghost_been_eaten db 0
 is_red_ghost_in_house db 0
 
 cyan_ghost_x dw 0
 cyan_ghost_y dw 0
 cyan_ghost_direction db aceman_no_direction
 is_cyan_ghost_eatable db 0
-has_cyan_ghost_been_eaten db 0
 is_cyan_ghost_in_house db 0
 
 yellow_ghost_x dw 0
 yellow_ghost_y dw 0
 yellow_ghost_direction db aceman_no_direction
 is_yellow_ghost_eatable db 0
-has_yellow_ghost_been_eaten db 0
 is_yellow_ghost_in_house db 0
 
 pink_ghost_x dw 0
 pink_ghost_y dw 0
 pink_ghost_direction db aceman_no_direction
 is_pink_ghost_eatable db 0
-has_pink_ghost_been_eaten db 0
 is_pink_ghost_in_house db 0
 
 ; Portals
 serchead_portal_x dw 0
 serchead_portal_y dw 0
 serchead_portal_number dw 0
+
+; Fill board investigation
+
+current_x dw 0
+current_y dw 1
+
+first_horizontal_wall_x dw 0
+last_horizontal_wall_x dw 0
+first_vertical_wall_y dw 0
+last_vertical_wall_y dw 0
 
 RandomSeed dw 0
 endm
@@ -382,7 +388,7 @@ mDeleteGhost macro x_pos, y_pos
 endm
 
 
-mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, direction
+mEvalGhostCollission macro pos_x, pos_y, eatable, is_in_house, direction
 
     local no_ghost_collission, decrease_lives, add_score, bonus_score
 
@@ -403,7 +409,6 @@ mEvalGhostCollission macro pos_x, pos_y, eatable, has_been_eaten, is_in_house, d
     je decrease_lives
 
     ; Ghost is eatable
-    mov has_been_eaten, 1
     mov eatable, 0
     mov is_in_house, 1
 

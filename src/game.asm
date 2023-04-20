@@ -182,41 +182,93 @@ initGhosts proc
     ; other vars
 
     mov red_ghost_direction, aceman_no_direction
-    mov is_red_ghost_eatable, 0
-    mov has_red_ghost_been_eaten, 0
+    mov is_red_ghost_eatable, 0 
     mov is_red_ghost_in_house, 1
 
     mov cyan_ghost_direction, aceman_no_direction
     mov is_cyan_ghost_eatable, 0
-    mov has_cyan_ghost_been_eaten, 0
     mov is_cyan_ghost_in_house, 1
 
     mov yellow_ghost_direction, aceman_no_direction
     mov is_yellow_ghost_eatable, 0
-    mov has_yellow_ghost_been_eaten, 0
     mov is_yellow_ghost_in_house, 1
 
     mov pink_ghost_direction, aceman_no_direction
     mov is_pink_ghost_eatable, 0
-    mov has_pink_ghost_been_eaten, 0
     mov is_pink_ghost_in_house, 1
 
     ret 
 initGhosts endp
 
+; * First fillAceDots implementation *  
+; fillAceDots proc
+
+;     mov cx, 1 ; initial y coordinate
+
+;     fill_next_row:
+;         mov ax, 0 ; x coordinate
+
+;     fill_next_col:
+
+;         call getGameObject ; get object code
+        
+;         cmp dx, 0 ; empty space
+;         jne pass_object
+
+;         call isInsideGhostHouse
+;         cmp dl, 1 ; inside ghost house
+;         je pass_object
+
+;         mov dl, 13 ; 19d -> ace dots
+;         call setGameObject
+
+;         pass_object:
+;             inc ax ; next column
+;             cmp ax, 28h ; 40d columns
+;             jne fill_next_col ; not 40d columns
+
+;             inc cx ; next row
+;             cmp cx, 18h ; 24d rows
+;             jne fill_next_row ; not 25d rows
+
+;     ret
+; fillAceDots endp
+
+
 fillAceDots proc
 
     mov cx, 1 ; initial y coordinate
+    mov current_y, cx
 
     fill_next_row:
         mov ax, 0 ; x coordinate
+        mov current_x, ax
 
     fill_next_col:
 
-        call getGameObject ; get object code
+        ; In reachable area
+        call searchWallInfo
         
-        cmp dx, 0 ; empty space
-        jne pass_object
+        mov ax, current_x
+        mov cx, current_y
+
+        cmp ax, first_horizontal_wall_x
+        jle pass_object ; at the left of the first horizontal wall (or equal)
+ 
+        cmp ax, last_horizontal_wall_x
+        jge pass_object ; at the right of the last horizontal wall (or equal)
+
+        cmp cx, first_vertical_wall_y
+        jle pass_object ; above the first vertical wall (or equal)
+
+        cmp cx, last_vertical_wall_y
+        jge pass_object ; below the last vertical wall (or equal)
+
+        ; Inside reachable area
+        call getGameObject ; get object code
+
+        cmp dx, 0 
+        jne pass_object ; not empty space
 
         call isInsideGhostHouse
         cmp dl, 1 ; inside ghost house
@@ -227,16 +279,99 @@ fillAceDots proc
 
         pass_object:
             inc ax ; next column
+            mov current_x, ax
             cmp ax, 28h ; 40d columns
             jne fill_next_col ; not 40d columns
 
             inc cx ; next row
+            mov current_y, cx
             cmp cx, 18h ; 24d rows
             jne fill_next_row ; not 25d rows
 
     ret
 fillAceDots endp
 
+; Description: searches for the first and last vertical/horizontal wall
+; Input: current_x = x coordinate ; current_y = y coordinate
+; Output: saves the first and last wall coordinates in the following variables:
+;         first_horizontal_wall_x, last_horizontal_wall_x, first_vertical_wall_y, last_vertical_wall_y
+; note: consider portals as walls, and a earlier board with only walls, portals and empty spaces
+searchWallInfo proc
+    
+    ; search first horizontal wall
+    mov ax, 0
+    mov cx, current_y
+    first_horizontal:
+        call getGameObject
+        
+        mov first_horizontal_wall_x, ax
+        inc ax
+        
+        cmp ax, 28h ; 40d columns per row
+        je end_first_horizontal
+
+        cmp dx, 0 ; empty space, first horizontal wall not found yet
+        je first_horizontal
+
+    end_first_horizontal:
+
+    ; search last horizontal wall
+    mov ax, 0
+    mov cx, current_y
+
+    last_horizontal:
+        call getGameObject
+
+        cmp dx, 0 ; empty space
+        je next_horizontal
+
+        ; posible last horizontal wall
+        mov last_horizontal_wall_x, ax
+
+        next_horizontal:    
+            inc ax
+            cmp ax, 28h ; 40d columns
+            jne last_horizontal ; until 40d columns are checked
+
+
+    ; search first vertical wall
+    mov ax, current_x
+    mov cx, 1 ; initial y coordinate
+
+    first_vertical:
+        call getGameObject
+
+        mov first_vertical_wall_y, cx
+        inc cx
+
+        cmp cx, 18h ; 24d rows
+        je end_first_vertical
+
+        cmp dx, 0 ; empty space, first vertical wall not found yet
+        je first_vertical
+
+    end_first_vertical:
+
+    ; search last vertical wall
+    mov ax, current_x
+    mov cx, 1 ; initial y coordinate
+
+    last_vertical:
+        call getGameObject
+
+        cmp dx, 0 ; empty space
+        je next_vertical
+
+        ; posible last vertical wall
+        mov last_vertical_wall_y, cx
+
+        next_vertical:    
+            inc cx
+            cmp cx, 18h ; 24d rows
+            jne last_vertical ; until 24d rows are checked
+
+    ret
+searchWallInfo endp
 
 ; Paints the sprite on video memory
 ; Entry: AX = x coordinate
@@ -1029,7 +1164,6 @@ getTimeInHundreths proc
     mov dx, ax
 
     pop ax
-
     add ax, dx ; + minutes
 
 
@@ -1112,22 +1246,22 @@ ghostsCollission proc
     ; red
     mov house_return_x, 13h
     mov house_return_y, 0ah
-    mEvalGhostCollission red_ghost_x, red_ghost_y, is_red_ghost_eatable, has_red_ghost_been_eaten, is_red_ghost_in_house, red_ghost_direction
+    mEvalGhostCollission red_ghost_x, red_ghost_y, is_red_ghost_eatable, is_red_ghost_in_house, red_ghost_direction
 
     ; cyan
     mov house_return_x, 15h
     mov house_return_y, 0ah
-    mEvalGhostCollission cyan_ghost_x, cyan_ghost_y, is_cyan_ghost_eatable, has_cyan_ghost_been_eaten, is_cyan_ghost_in_house, cyan_ghost_direction
+    mEvalGhostCollission cyan_ghost_x, cyan_ghost_y, is_cyan_ghost_eatable, is_cyan_ghost_in_house, cyan_ghost_direction
 
     ; yellow
     mov house_return_x, 13h
     mov house_return_y, 0ch
-    mEvalGhostCollission yellow_ghost_x, yellow_ghost_y, is_yellow_ghost_eatable, has_yellow_ghost_been_eaten, is_yellow_ghost_in_house, yellow_ghost_direction
+    mEvalGhostCollission yellow_ghost_x, yellow_ghost_y, is_yellow_ghost_eatable, is_yellow_ghost_in_house, yellow_ghost_direction
 
     ; pink
     mov house_return_x, 15h
     mov house_return_y, 0ch
-    mEvalGhostCollission pink_ghost_x, pink_ghost_y, is_pink_ghost_eatable, has_pink_ghost_been_eaten, is_pink_ghost_in_house, pink_ghost_direction
+    mEvalGhostCollission pink_ghost_x, pink_ghost_y, is_pink_ghost_eatable, is_pink_ghost_in_house, pink_ghost_direction
     
     no_more_evals:
     ret

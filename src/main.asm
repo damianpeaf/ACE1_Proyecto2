@@ -72,6 +72,8 @@ Randoms2:
 
         load_level:
 
+        ; TODO: reset game board
+
         ; load level
         lea dx, firstLevelFile ; <- Change this to load different levels
         call readLevelFile
