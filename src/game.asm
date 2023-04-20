@@ -200,43 +200,8 @@ initGhosts proc
     ret 
 initGhosts endp
 
-; * First fillAceDots implementation *  
-; fillAceDots proc
-
-;     mov cx, 1 ; initial y coordinate
-
-;     fill_next_row:
-;         mov ax, 0 ; x coordinate
-
-;     fill_next_col:
-
-;         call getGameObject ; get object code
-        
-;         cmp dx, 0 ; empty space
-;         jne pass_object
-
-;         call isInsideGhostHouse
-;         cmp dl, 1 ; inside ghost house
-;         je pass_object
-
-;         mov dl, 13 ; 19d -> ace dots
-;         call setGameObject
-
-;         pass_object:
-;             inc ax ; next column
-;             cmp ax, 28h ; 40d columns
-;             jne fill_next_col ; not 40d columns
-
-;             inc cx ; next row
-;             cmp cx, 18h ; 24d rows
-;             jne fill_next_row ; not 25d rows
-
-;     ret
-; fillAceDots endp
-
-
 fillAceDots proc
-
+    mov aceDotsLeft, 0
     mov cx, 1 ; initial y coordinate
     mov current_y, cx
 
@@ -276,6 +241,7 @@ fillAceDots proc
 
         mov dl, 13 ; 19d -> ace dots
         call setGameObject
+        inc aceDotsLeft
 
         pass_object:
             inc ax ; next column
@@ -761,10 +727,7 @@ moveAceman proc
 
         cmp dx, 15h
         jge portal_transport
-
-        ; TODO: aceman collision with other objects
-
- 
+       
         not_move_aceman:
             ret
 
@@ -785,6 +748,8 @@ moveAceman proc
             pop cx
             pop ax
 
+            dec powerDotsLeft
+
             jmp move_aceman
 
 
@@ -794,6 +759,8 @@ moveAceman proc
 
             mov dx, dotValue
             add gamePoints, dx
+
+            dec aceDotsLeft
 
             jmp move_aceman
 
@@ -807,6 +774,18 @@ moveAceman proc
         move_aceman:
             mov aceman_x, ax
             mov aceman_y, cx
+
+            cmp aceDotsLeft, 0
+            jne not_end_game
+
+            cmp powerDotsLeft, 0
+            jne not_end_game
+
+            mov al, 1
+            mov endGame, al
+
+            not_end_game:
+
             ret
 
 moveAceman endp
@@ -1528,3 +1507,29 @@ pauseTitle proc
 
     ret
  pauseTitle endp
+
+
+ ; Description: Resets game board
+ ; Input: None
+ ; Output: None
+resetGameBoard proc
+
+    mov cx, 1 ; initial y coordinate
+
+    fill_next_row:
+        mov ax, 0 ; x coordinate
+    fill_next_col:
+        mov dl, 0 ; 19d -> ace dots
+        call setGameObject
+
+        pass_object:
+            inc ax ; next column
+            cmp ax, 28h ; 40d columns
+            jne fill_next_col ; not 40d columns
+
+            inc cx ; next row
+            cmp cx, 18h ; 24d rows
+            jne fill_next_row ; not 25d rows
+
+    ret
+ resetGameBoard endp

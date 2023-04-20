@@ -126,6 +126,7 @@ readLevelFile proc
     ; Read "power-dots":[
     mLineEquals sPowerDots
 
+    mov powerDotsLeft, 0 ; Reset power dots
     ; Power dots loop
     power_dots_loop:
         mReadLine
@@ -144,6 +145,7 @@ readLevelFile proc
         mov cx, bx ; Move y to cx
         mov dl, 14 ; Power dot
         call setGameObject
+        inc powerDotsLeft
 
         mReadLine
         lea si, readStringBuffer

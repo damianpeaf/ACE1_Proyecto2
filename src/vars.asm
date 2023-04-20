@@ -126,6 +126,8 @@ gamePoints dw 0
 aceman_hp db 3 ; 3 lives
 max_score dw 0
 random db 0 ; 0 | 1
+aceDotsLeft dw 0
+powerDotsLeft dw 0
 
 initialTimestamp dw 0 ; in hundredths of seconds
 elapsedTimestamp dw 0 ; in hundredths of seconds
