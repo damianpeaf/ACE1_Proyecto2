@@ -27,26 +27,26 @@ graphGameBoard proc
         pop ax ; restore x coordinate
 
         ; Paint wall sprite
-        jmp paint_object
+        jmp paint_board_object
 
         not_a_wall:
 
         lea di, sprite_ace_dot
         cmp dx, 13h ; ace dot
-        je paint_object
+        je paint_board_object
 
         lea di, sprite_power_dot
         cmp dx, 14h ; power dot
-        je paint_object
+        je paint_board_object
 
         lea di, sprite_portal
         cmp dx, 15h ; > 15d -> Portal
-        jge paint_object
+        jge paint_board_object
 
 
         jmp no_paint_object
 
-        paint_object:
+        paint_board_object:
         call paintSprite
 
         no_paint_object:
@@ -205,11 +205,11 @@ fillAceDots proc
     mov cx, 1 ; initial y coordinate
     mov current_y, cx
 
-    fill_next_row:
+    fill_next_row_dots:
         mov ax, 0 ; x coordinate
         mov current_x, ax
 
-    fill_next_col:
+    fill_next_col_dots:
 
         ; In reachable area
         call searchWallInfo
@@ -218,41 +218,41 @@ fillAceDots proc
         mov cx, current_y
 
         cmp ax, first_horizontal_wall_x
-        jle pass_object ; at the left of the first horizontal wall (or equal)
+        jle pass_object_dot ; at the left of the first horizontal wall (or equal)
  
         cmp ax, last_horizontal_wall_x
-        jge pass_object ; at the right of the last horizontal wall (or equal)
+        jge pass_object_dot ; at the right of the last horizontal wall (or equal)
 
         cmp cx, first_vertical_wall_y
-        jle pass_object ; above the first vertical wall (or equal)
+        jle pass_object_dot ; above the first vertical wall (or equal)
 
         cmp cx, last_vertical_wall_y
-        jge pass_object ; below the last vertical wall (or equal)
+        jge pass_object_dot ; below the last vertical wall (or equal)
 
         ; Inside reachable area
         call getGameObject ; get object code
 
         cmp dx, 0 
-        jne pass_object ; not empty space
+        jne pass_object_dot ; not empty space
 
         call isInsideGhostHouse
         cmp dl, 1 ; inside ghost house
-        je pass_object
+        je pass_object_dot
 
         mov dl, 13 ; 19d -> ace dots
         call setGameObject
         inc aceDotsLeft
 
-        pass_object:
+        pass_object_dot:
             inc ax ; next column
             mov current_x, ax
             cmp ax, 28h ; 40d columns
-            jne fill_next_col ; not 40d columns
+            jne fill_next_col_dots ; not 40d columns
 
             inc cx ; next row
             mov current_y, cx
             cmp cx, 18h ; 24d rows
-            jne fill_next_row ; not 25d rows
+            jne fill_next_row_dots ; not 25d rows
 
     ret
 fillAceDots endp
@@ -1192,7 +1192,6 @@ moveGhosts proc
     mEvalReleaseGhost is_cyan_ghost_in_house, cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
     mEvalReleaseGhost is_pink_ghost_in_house, pink_ghost_x, pink_ghost_y, pink_ghost_direction
     mEvalReleaseGhost is_yellow_ghost_in_house, yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
-
     no_more_evals:
 
     ; Movement
@@ -1216,7 +1215,7 @@ moveGhosts endp
 ghostsCollission proc
 
     cmp check_ghost_collission, 0
-    je no_more_evals
+    je no_more_evals_ghosts
     ; red
     mov house_return_x, 13h
     mov house_return_y, 0ah
@@ -1237,7 +1236,7 @@ ghostsCollission proc
     mov house_return_y, 0ch
     mEvalGhostCollission pink_ghost_x, pink_ghost_y, is_pink_ghost_eatable, is_pink_ghost_in_house, pink_ghost_direction
     
-    no_more_evals:
+    no_more_evals_ghosts:
     ret
 ghostsCollission endp
 
@@ -1511,20 +1510,20 @@ resetGameBoard proc
 
     mov cx, 1 ; initial y coordinate
 
-    fill_next_row:
+    fill_next_row_reset:
         mov ax, 0 ; x coordinate
-    fill_next_col:
+    fill_next_col_reset:
         mov dl, 0 ; 19d -> ace dots
         call setGameObject
 
-        pass_object:
-            inc ax ; next column
-            cmp ax, 28h ; 40d columns
-            jne fill_next_col ; not 40d columns
+        ; pass_object:
+        inc ax ; next column
+        cmp ax, 28h ; 40d columns
+        jne fill_next_col_reset ; not 40d columns
 
-            inc cx ; next row
-            cmp cx, 18h ; 24d rows
-            jne fill_next_row ; not 25d rows
+        inc cx ; next row
+        cmp cx, 18h ; 24d rows
+        jne fill_next_row_reset ; not 25d rows
 
     ret
  resetGameBoard endp

@@ -40,26 +40,31 @@ mGameVariables
 ; - Files -
 mFilesVariables
 
+Randoms1 db 0Ah,9Fh,0F0h,1Bh,69h,3Dh,0E8h,52h,0C6h,41h,0B7h,74h,23h,0ACh,8Eh,0D5h
+Randoms2 db 9Ch,0EEh,0B5h,0CAh,0AFh,0F0h,0DBh,69h,3Dh,58h,22h,06h,41h,17h,74h,83h
+    
+
 ; - MEMORY -
 mMemoryBlocks ; *IMPORTANT* This must be the last variable declared
+
+
+free_address dw 0 ; next free address
+data_block dw 0
 
 .code
 
 include files.asm
 include game.asm
-Randoms1:
-    db 0Ah,9Fh,0F0h,1Bh,69h,3Dh,0E8h,52h,0C6h,41h,0B7h,74h,23h,0ACh,8Eh,0D5h
-Randoms2:
-    db 9Ch,0EEh,0B5h,0CAh,0AFh,0F0h,0DBh,69h,3Dh,58h,22h,06h,41h,17h,74h,83h
-    
+include crud.asm
 .startup
     
+    call createAdmin
 
     initial_messsage:
         mPrint initialMessage
         mWaitForEnter
 
-        ; TODO: menus
+        call loginMenu
 
     start_game:
 

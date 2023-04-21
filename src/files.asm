@@ -11,7 +11,7 @@ readLevelFile proc
     mov AH, 3dh ; Open
     int 21
     jc open_file_error
-    mov [filehandle], AX 
+    mov filehandle, AX 
 
     mov ax, 0 ; First line
     mov fileLine, ax
@@ -258,7 +258,7 @@ readLevelFile proc
 
     close_file:
         ; Close the file
-        mov bx, [filehandle]
+        mov bx, filehandle
         mov AH, 3eh
         int 21
         jc close_file_error
@@ -308,7 +308,7 @@ readOneLineOfFile proc
     lea DI, readCharBuffer ; Load the char buffer
 
     read_line_loop:
-        mov BX, [filehandle] ; Filehandle
+        mov BX, filehandle ; Filehandle
         mov CX, 1 ; Read 1 byte
         mov DX, DI ; Saves char in char buffer
         mov AH, 3fh

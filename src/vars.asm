@@ -10,6 +10,17 @@ mGeneralVariables macro
     sColon db ':', "$"
     sDeveloper db "Desarrollador: Damian Pena - 202110568$"
 
+    ; Menus
+
+    sLoginMenu db "1. Iniciar Sesion", 0dh, 0ah, "2. Salir", 0dh, 0ah, "F8 para crear un usuario", 0dh, 0ah, "$"
+    sUsername db "Usuario: $"
+    sPassword db "Contrasena: $"
+    invalidOption db "Opcion invalida, presiona ENTER para continuar", 0dh, 0ah, "$"
+    sInvalidLogin db "Usuario o contrasena incorrectos, presiona ENTER para continuar", 0dh, 0ah, "$"
+
+    logged_user_address dw 0
+    logged_user_type db 0
+
 endm
 
 
