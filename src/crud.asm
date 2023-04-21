@@ -297,6 +297,7 @@ authUser proc
         cmp bx, 0 ; [NULL] address
         je end_auth
 
+        mov si, bx ; si = user address
         ; search for the username
         ; si + 2 -> skip user's address
         ; si + 2 + 2 -> skip user's next address
