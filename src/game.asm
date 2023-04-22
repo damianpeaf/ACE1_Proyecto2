@@ -1459,7 +1459,10 @@ showPregameInfo proc
     int 10h
 
     mPrint sCurrentPlayer
-    mPrint currentPlayer
+
+    lea di, usernameBuffer
+    add di, 2 ; skip max size and current size
+    mPrintAddress di
 
     ; Developer
 

@@ -18,8 +18,31 @@ mGeneralVariables macro
     invalidOption db "Opcion invalida, presiona ENTER para continuar", 0dh, 0ah, "$"
     sInvalidLogin db "Usuario o contrasena incorrectos, presiona ENTER para continuar", 0dh, 0ah, "$"
 
+    sInitGame db "Iniciar Juego", 0dh, 0ah, "$"
+    sTop10PersonalTimes db "Top 10 tiempos personales", 0dh, 0ah, "$"
+    sTop10PersonalScores db "Top 10 puntajes personales", 0dh, 0ah, "$"
+    sTop10GlobalTimes db "Top 10 tiempos globales", 0dh, 0ah, "$"
+    sTop10GlobalScores db "Top 10 puntajes globales", 0dh, 0ah, "$"
+    sActivateUser db "Activar usuario", 0dh, 0ah, "$"
+    sDeactivateUser db "Desactivar usuario", 0dh, 0ah, "$"
+    sExitMenu db "Salir", 0dh, 0ah, "$"
+    sSelectedUser db "Usuario seleccionado: $"
+    sNotFoundUser db "Usuario no encontrado", 0dh, 0ah, "$"
+    sNextUser db "[d] Siguiente", 0dh, 0ah, "$"
+    sAcceptUser db "[a] aceptar como usuario normal", 0dh, 0ah, "$"
+    sAcceptUser2 db "[s] aceptar como administrador", 0dh, 0ah, "$"
+    sInactiveUser db "[a] inactivar", 0dh, 0ah, "$"
+    sBack db "[r] regresar", 0dh, 0ah, "$"
+    sUserActivated db "Usuario activado", 0dh, 0ah, "$"
+    sUserDeactivated db "Usuario desactivado", 0dh, 0ah, "$"
+
     logged_user_address dw 0
     logged_user_type db 0
+
+    stringCopyBuffer db 20 dup('$')
+
+    Randoms1 db 0Ah,9Fh,0F0h,1Bh,69h,3Dh,0E8h,52h,0C6h,41h,0B7h,74h,23h,0ACh,8Eh,0D5h
+    Randoms2 db 9Ch,0EEh,0B5h,0CAh,0AFh,0F0h,0DBh,69h,3Dh,58h,22h,06h,41h,17h,74h,83h
 
 endm
 
@@ -128,6 +151,7 @@ pauseMessage db "Pausa$"
 resumeInfo db "Presiona ENTER para resumir$"
 quitInfo db "Presiona 'q' para salir$"
 currentLevel dw 0
+levelCounter db 1
 dotValue dw 0
 aceman_x dw 0
 aceman_y dw 0

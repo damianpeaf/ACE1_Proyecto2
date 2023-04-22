@@ -254,6 +254,25 @@ loginMenu proc
     cmp logged_user_address, 0 ; [NULL] address
     je invalid_login
 
+    cmp logged_user_type, 1 ; admin
+    je goToAdminMenu
+
+    cmp logged_user_type, 2 ; subadmin
+    je goToSubAdminMenu
+
+    cmp logged_user_type, 3 ; user
+    je goToUserMenu
+
+    goToAdminMenu:
+    call adminMenu
+    jmp end_login
+
+    goToSubAdminMenu:
+    call subAdminMenu
+    jmp end_login
+
+    goToUserMenu:
+    call userMenu
     jmp end_login
 
     create_user:
@@ -358,3 +377,303 @@ authUser proc
 
     ret
 authUser endp
+
+adminMenu proc
+    
+    print_admin_options:
+        mPrint newLine
+        mPrint newLine
+        mPrint sInitGame
+        mPrint sDeactivateUser
+        mPrint sActivateUser
+        mPrint sTop10GlobalTimes
+        mPrint sTop10GlobalScores
+        mPrint sExitMenu
+        
+        mov ah, 10h
+        int 16h
+
+        cmp al, 31h ; 1
+        je admin_init_game
+
+        cmp al, 32h ; 2
+        je admin_deactivate_user
+
+        cmp al, 33h ; 3
+        je admin_activate_user
+
+        cmp al, 34h ; 4
+        je admin_top10_global_times
+
+        cmp al, 35h ; 5
+        je admin_top10_global_scores
+
+        cmp al, 36h ; 6
+        je end_admin_menu
+        
+        mPrint invalidOption
+        mWaitForEnter
+        jmp print_admin_options
+
+        admin_init_game:
+            call startGame
+            jmp print_admin_options
+
+        admin_deactivate_user:
+            call deactivateUser
+            jmp print_admin_options
+            
+        admin_activate_user:
+            call activateUser
+            jmp print_admin_options
+
+        admin_top10_global_times:
+            jmp print_admin_options
+
+        admin_top10_global_scores:
+            jmp print_admin_options
+
+    end_admin_menu:
+    ret ; -> Exit menu
+adminMenu endp
+
+subAdminMenu proc
+    
+    ret ; -> Exit menu
+subAdminMenu endp
+
+userMenu proc
+    
+    ret ; -> Exit menu
+userMenu endp
+
+
+deactivateUser proc
+    mov cl, 1 ; first non-admin user
+
+    select_user_loop_inactive:
+        call getUserByIndex
+        cmp bx, 0 ; [NULL] address
+        je deactivate_null_user
+        
+        
+        mov si, bx ; si = user address
+        add si, 7 ; si = user active status
+        mov al, [si] ; al = user active status
+        cmp al, 0 ; al = 0 if active
+        je skip_inactive_user
+
+        mPrint newLine
+        mPrint sSelectedUser
+
+        push cx ; save user index
+        add si, 1 ; si = username length address
+        mov cl, [si] ; cl = username length
+        add si, 1 ; si = username bytes
+        call copyStringInBuffer
+        lea di, stringCopyBuffer
+        mPrintAddress di
+
+        mPrint newLine
+
+        mPrint sInactiveUser ; a
+        mPrint sNextUser ; d
+        mPrint sBack ; r
+
+        pop cx ; restore user index
+
+        mov ah, 10h
+        int 16h
+
+        cmp al, 61h ; a
+        je innactivate_selected_user
+
+        cmp al, 64h ; d
+        je skip_inactive_user
+
+        cmp al, 72h ; r
+        je end_user_inactivation
+
+        mPrint invalidOption
+        mWaitForEnter
+        jmp select_user_loop_inactive
+
+        deactivate_null_user:
+            mPrint sNotFoundUser
+            mWaitForEnter
+            jmp end_user_inactivation
+        
+        skip_inactive_user:
+            inc cl ; cl = cl + 1
+            jmp select_user_loop_inactive
+
+        innactivate_selected_user: 
+            mov si, bx ; si = user address
+            add si, 7 ; si = user active status
+            mov al, 0 ; al = 0
+            mov [si], al ; user active status = 0
+            
+            mPrint sUserDeactivated
+            mWaitForEnter
+            jmp skip_inactive_user
+            
+
+    end_user_inactivation:
+    ret
+deactivateUser endp
+
+
+activateUser proc
+
+    mov cl, 1 ; first non-admin user
+
+    select_user_loop:
+        call getUserByIndex
+        cmp bx, 0 ; [NULL] address
+        je activate_null_user
+        
+        
+        mov si, bx ; si = user address
+        add si, 7 ; si = user active status
+        mov al, [si] ; al = user active status
+        cmp al, 1 ; al = 1 if active
+        je skip_active_user
+
+        mPrint newLine
+        mPrint sSelectedUser
+
+        push cx ; save user index
+        add si, 1 ; si = username length address
+        mov cl, [si] ; cl = username length
+        add si, 1 ; si = username bytes
+        call copyStringInBuffer
+        lea di, stringCopyBuffer
+        mPrintAddress di
+
+        mPrint newLine
+
+        mPrint sAcceptUser ; a
+        mPrint sAcceptUser2 ; s
+        mPrint sNextUser ; d
+        mPrint sBack ; r
+
+        pop cx ; restore user index
+
+        mov ah, 10h
+        int 16h
+
+        cmp al, 61h ; a
+        je accept_selected_user
+
+        cmp al, 73h ; s
+        je accept_selected_user_as_admin
+
+        cmp al, 64h ; d
+        je skip_active_user
+
+
+        cmp al, 72h ; r
+        je end_user_activation
+
+        mPrint invalidOption
+        mWaitForEnter
+        jmp select_user_loop
+
+        activate_null_user:
+            mPrint sNotFoundUser
+            mWaitForEnter
+            jmp end_user_activation
+        
+        skip_active_user:
+            inc cl ; cl = cl + 1
+            jmp select_user_loop
+
+        accept_selected_user: 
+            mov si, bx ; si = user address
+            add si, 7 ; si = user active status
+            mov al, 1 ; al = 1
+            mov [si], al ; activate user
+            
+            mPrint sUserActivated
+            mWaitForEnter
+            jmp skip_active_user
+            
+        accept_selected_user_as_admin: 
+            mov si, bx ; si = user address
+            add si, 6 ; si = user type address
+            mov al, 2 ; al = 2 ; subadmin
+            mov [si], al ; activate user
+            add si, 1 ; si = user active status
+            mov al, 1 ; al = 1
+            mov [si], al ; activate user
+            
+            mPrint sUserActivated
+            mWaitForEnter
+            jmp skip_active_user
+
+    end_user_activation:
+    ret
+activateUser endp
+
+; Description: Get the user address by index
+; Input: CL = user index
+; Output: BX = user address | 0 if not found
+getUserByIndex proc
+
+    push cx ; save user index    
+    lea si, data_block ; first user address
+
+    registered_user_loop:
+        mov bx, [si] ; bx = user address
+
+        cmp bx, 0 ; [NULL] address
+        je return_user
+
+        cmp cl, 0 ; cl = 0 if is the user
+        je return_user
+
+        dec cl ; cl = cl - 1
+
+        mov si, bx ; si = first user address
+        add si, 2 ; si = next user address
+        jmp registered_user_loop
+
+
+    return_user:
+    pop cx ; restore user index
+    ret
+getUserByIndex endp
+
+
+; Description: Copies a string into a $ buffer
+; Input: CL=chars to copy, SI=source address
+; Output: stringCopyBuffer
+copyStringInBuffer proc
+
+    mov ch, 0
+    ; reset stringCopyBuffer
+    push cx
+
+    lea di, stringCopyBuffer
+    mov cl, 20
+    mov al, '$'
+
+    reset_copy_buffer:
+        mov [di], al
+        inc di
+        loop reset_copy_buffer
+
+    pop cx
+    ; copy string
+    
+    lea di, stringCopyBuffer
+
+    copy_string:
+        mov al, [si]
+        mov [di], al
+        inc si
+        inc di
+        loop copy_string
+
+    ret
+copyStringInBuffer endp

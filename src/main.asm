@@ -40,10 +40,6 @@ mGameVariables
 ; - Files -
 mFilesVariables
 
-Randoms1 db 0Ah,9Fh,0F0h,1Bh,69h,3Dh,0E8h,52h,0C6h,41h,0B7h,74h,23h,0ACh,8Eh,0D5h
-Randoms2 db 9Ch,0EEh,0B5h,0CAh,0AFh,0F0h,0DBh,69h,3Dh,58h,22h,06h,41h,17h,74h,83h
-    
-
 ; - MEMORY -
 mMemoryBlocks ; *IMPORTANT* This must be the last variable declared
 
@@ -58,29 +54,42 @@ include game.asm
 include crud.asm
 .startup
     
-    call createAdmin
 
-    initial_messsage:
+    ; initial_messsage
+        call createAdmin
         mPrint initialMessage
         mWaitForEnter
 
+    initial_menu:
+        mov logged_user_address, 0
         call loginMenu
+        jmp initial_menu
 
-    start_game:
+    startGame proc
 
         mInitVideoMode
         mov aceman_hp, 3
         mov gamePoints, 0
         mov pauseGame, 0
-        mov endGame, 0
         call getInitialTime
 
         load_level:
+        mov endGame, 0
 
         call resetGameBoard
 
         ; load level
         lea dx, firstLevelFile ; <- Change this to load different levels
+        cmp levelCounter, 1
+        je read_level_file
+
+        lea dx, secondLevelFile
+        cmp levelCounter, 2
+        je read_level_file
+
+        lea dx, thirdLevelFile
+
+        read_level_file:
         call readLevelFile
 
         call acemanRandomInitialDirection
@@ -115,16 +124,21 @@ include crud.asm
         cmp dl, 0
         je game_sequence
 
+        inc levelCounter
+        cmp levelCounter, 4
+        jne load_level
+
         exit_game:
         mEndVideoMode
         ; Register score
-        jmp end_program ; <- return to main menu
+        ret ; -> return to caller
 
         pause_menu:
             call showPregameInfo
             call pauseTitle
             mPauseOptions
 
+    startGame endp
 
 end_program:
     mov al, 0c
