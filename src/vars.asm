@@ -157,6 +157,7 @@ aceman_x dw 0
 aceman_y dw 0
 endGame db 0 ; 0 -> Game is running, 255 -> Game is over
 pauseGame db 0 ; 0 -> Game is running, 255 -> Game is paused
+gameLost db 0
 gamePoints dw 0
 aceman_hp db 3 ; 3 lives
 max_score dw 0
@@ -509,7 +510,7 @@ mEvalGhostCollission macro pos_x, pos_y, eatable, is_in_house, direction
         ; Game over
         mov al, 0ffh        
         mov endGame, al ; toggle endGame
-
+        mov gameLost, 1
 
     no_ghost_collission:
 

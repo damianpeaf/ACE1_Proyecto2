@@ -68,9 +68,11 @@ include crud.asm
     startGame proc
 
         mInitVideoMode
+        mov levelCounter, 1
         mov aceman_hp, 3
         mov gamePoints, 0
         mov pauseGame, 0
+        mov gameLost, 0
         call getInitialTime
 
         load_level:
@@ -79,7 +81,7 @@ include crud.asm
         call resetGameBoard
 
         ; load level
-        lea dx, firstLevelFile ; <- Change this to load different levels
+        lea dx, firstLevelFile
         cmp levelCounter, 1
         je read_level_file
 
@@ -115,6 +117,10 @@ include crud.asm
         call ghostsCollission
         call moveAceman
         call ghostsCollission
+
+        mov dl, gameLost
+        cmp dl, 1
+        je exit_game
 
         mov dl, pauseGame
         cmp dl, 1

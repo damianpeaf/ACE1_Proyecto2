@@ -438,12 +438,101 @@ adminMenu proc
 adminMenu endp
 
 subAdminMenu proc
-    
+    print_subadmin_options:
+        mPrint newLine
+        mPrint newLine
+        mPrint sInitGame
+        mPrint sTop10PersonalTimes
+        mPrint sTop10PersonalScores
+        mPrint sTop10GlobalTimes
+        mPrint sTop10GlobalScores
+        mPrint sExitMenu
+
+        mov ah, 10h
+        int 16h
+
+        cmp al, 31h ; 1
+        je subadmin_init_game
+
+        cmp al, 32h ; 2
+        je subadmin_top10_personal_times
+
+        cmp al, 33h ; 3
+        je subadmin_top10_personal_scores
+        
+        cmp al, 34h ; 4
+        je subadmin_top10_global_times
+
+        cmp al, 35h ; 5
+        je subadmin_top10_global_scores
+
+        cmp al, 36h ; 6
+        je end_subadmin_menu
+
+        mPrint invalidOption
+        mWaitForEnter
+        jmp print_subadmin_options
+
+        subadmin_init_game:
+            call startGame
+            jmp print_subadmin_options
+
+        subadmin_top10_personal_times:
+            jmp print_subadmin_options
+
+        subadmin_top10_personal_scores:
+            jmp print_subadmin_options
+
+        subadmin_top10_global_times:
+            jmp print_subadmin_options
+
+        subadmin_top10_global_scores:
+            jmp print_subadmin_options
+
+    end_subadmin_menu:
     ret ; -> Exit menu
 subAdminMenu endp
 
 userMenu proc
     
+    print_user_options:
+        mPrint newLine
+        mPrint newLine
+        mPrint sInitGame
+        mPrint sTop10PersonalTimes
+        mPrint sTop10PersonalScores
+        mPrint sExitMenu
+
+        mov ah, 10h
+        int 16h
+
+        cmp al, 31h ; 1
+        je user_init_game
+
+        cmp al, 32h ; 2
+        je user_top10_personal_times
+
+        cmp al, 33h ; 3
+        je user_top10_personal_scores
+
+        cmp al, 34h ; 4
+        je end_user_menu
+
+        mPrint invalidOption
+        mWaitForEnter
+        jmp print_user_options
+
+        user_init_game:
+            call startGame
+            jmp print_user_options
+
+        user_top10_personal_times:
+            jmp print_user_options
+
+        user_top10_personal_scores:
+            jmp print_user_options
+
+    end_user_menu:
     ret ; -> Exit menu
 userMenu endp
 

@@ -39,7 +39,7 @@ graphGameBoard proc
         cmp dx, 14h ; power dot
         je paint_board_object
 
-        lea di, sprite_portal
+        lea di, sprite_walls
         cmp dx, 15h ; > 15d -> Portal
         jge paint_board_object
 
