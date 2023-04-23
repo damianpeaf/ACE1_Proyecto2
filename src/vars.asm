@@ -220,6 +220,8 @@ pink_ghost_direction db aceman_no_direction
 is_pink_ghost_eatable db 0
 is_pink_ghost_in_house db 0
 
+aux_direction db 0
+
 ; Portals
 serchead_portal_x dw 0
 serchead_portal_y dw 0
@@ -333,6 +335,18 @@ mEvalGhostMovement macro x_pos, y_pos, direction
     cmp dh, aceman_no_direction
     je skip_evaluating_ghost_movement
 
+    mov aux_direction, dh ; initial direction
+    
+    call canTurnLeft
+    call canTurnRight
+    call canTurnUp
+    call canTurnDown
+
+    mov direction, dh ; Save posible direction change
+    
+    mov ax, x_pos
+    mov cx, y_pos
+
     ;down
     ghost_move_down:
     cmp dh, aceman_down
@@ -373,7 +387,7 @@ mEvalGhostMovement macro x_pos, y_pos, direction
         jle not_move_ghost ; Next object is wall
 
         cmp dx, 15h
-        jge portal_transport
+        jge not_move_ghost
 
         jmp move_ghost
 
@@ -407,12 +421,12 @@ mEvalGhostMovement macro x_pos, y_pos, direction
 
             jmp not_move_ghost
 
-        portal_transport:
-            mov serchead_portal_x, ax
-            mov serchead_portal_y, cx
-            mov serchead_portal_number, dx
-            call searchPortalEnd
-            jmp move_ghost
+        ; portal_transport:
+        ;     mov serchead_portal_x, ax
+        ;     mov serchead_portal_y, cx
+        ;     mov serchead_portal_number, dx
+        ;     call searchPortalEnd
+        ;     jmp move_ghost
 
         move_ghost:
             mov x_pos, ax

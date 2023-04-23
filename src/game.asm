@@ -1538,7 +1538,7 @@ acemanRandomInitialDirection proc
     call GenerateRandom
 
     mov aceman_direction, aceman_right
-    cmp random, 2
+    cmp random, 1
     je end_initial_direction
 
     mov aceman_direction, aceman_left
@@ -1550,7 +1550,7 @@ acemanRandomInitialDirection proc
     je end_initial_direction
 
     mov aceman_direction, aceman_down
-    cmp random, 5
+    cmp random, 1
     je end_initial_direction
 
     jmp compute_direction_random
@@ -1558,4 +1558,233 @@ acemanRandomInitialDirection proc
     end_initial_direction:
 
     ret
-acemanRandomInitialDirection endp 
+acemanRandomInitialDirection endp
+
+
+; Description: evals if a ghost can turn left
+; Input: ax -> x coord; cx -> y coord; dh -> direction
+; Output: change aux_direction to new direction if possible
+canTurnLeft proc
+    
+    push ax
+    push cx
+
+    cmp aux_direction, 1
+    je return_can_turn_left
+
+    cmp dh, aceman_left
+    je cant_move_left
+
+    dec ax ; check left
+
+    call getGameObject
+    mov bx, dx
+
+    call isInsideGhostHouse ; * mutates DX
+    cmp dl, 1
+    je cant_move_left
+
+    mov dx, bx
+
+    cmp dx, 0 ; Next object is empty space
+    je can_move_left
+
+    cmp dx, 0fh 
+    jle cant_move_left ; Next object is wall
+
+    cmp dx, 15h
+    jge cant_move_left
+
+    jmp can_move_left
+
+
+    cant_move_left:
+        mov dh, aux_direction
+        jmp return_can_turn_left
+
+    can_move_left:
+        call GenerateRandom
+
+        cmp random, 1 ; 50% chance
+        jg cant_move_left
+
+        mov aux_direction, 1 ; no change again
+        mov dh, aceman_left
+        jmp return_can_turn_left
+
+    return_can_turn_left:
+        pop cx
+        pop ax
+    ret
+canTurnLeft endp
+
+
+; Description: evals if a ghost can turn right
+; Input: ax -> x coord; cx -> y coord; dh -> direction
+; Output: change aux_direction to new direction if possible
+canTurnRight proc
+    
+    push ax
+    push cx
+
+    cmp aux_direction, 1
+    je return_can_turn_right
+
+    cmp dh, aceman_right
+    je cant_move_right
+
+    inc ax ; check right
+
+    call getGameObject
+    mov bx, dx
+
+    call isInsideGhostHouse ; * mutates DX
+    cmp dl, 1
+    je cant_move_right
+
+    mov dx, bx
+
+    cmp dx, 0 ; Next object is empty space
+    je can_move_right
+
+    cmp dx, 0fh 
+    jle cant_move_right ; Next object is wall
+
+    cmp dx, 15h
+    jge cant_move_right
+
+    jmp can_move_right
+
+    cant_move_right:
+        mov dh, aux_direction
+        jmp return_can_turn_right
+
+    can_move_right:
+        call GenerateRandom
+
+        cmp random, 1 ; 50% chance
+        jg cant_move_right
+
+        mov aux_direction, 1 ; no change again
+        mov dh, aceman_right
+        jmp return_can_turn_right
+
+    return_can_turn_right:
+        pop cx
+        pop ax
+    ret
+canTurnRight endp
+
+
+; Description: evals if a ghost can turn up
+; Input: ax -> x coord; cx -> y coord; dh -> direction
+; Output: change aux_direction to new direction if possible
+canTurnUp proc
+    
+    push ax
+    push cx
+
+    cmp aux_direction, 1
+    je return_can_turn_up
+
+    cmp dh, aceman_up
+    je cant_move_up
+
+    dec cx ; check up
+
+    call getGameObject
+    mov bx, dx
+
+    call isInsideGhostHouse ; * mutates DX
+    cmp dl, 1
+    je cant_move_up
+
+    mov dx, bx
+
+    cmp dx, 0 ; Next object is empty space
+    je can_move_up
+
+    cmp dx, 0fh 
+    jle cant_move_up ; Next object is wall
+
+    cmp dx, 15h
+    jge cant_move_up
+
+    jmp can_move_up
+
+    cant_move_up:
+        mov dh, aux_direction
+        jmp return_can_turn_up
+
+    can_move_up:
+        call GenerateRandom
+
+        cmp random, 1 ; 50% chance
+        jg cant_move_up
+
+        mov aux_direction, 1 ; no change again
+        mov dh, aceman_up
+        jmp return_can_turn_up
+
+    return_can_turn_up:
+        pop cx
+        pop ax
+    ret
+canTurnUp endp
+
+
+; Description: evals if a ghost can turn down
+; Input: ax -> x coord; cx -> y coord; dh -> direction
+; Output: change aux_direction to new direction if possible
+canTurnDown proc
+    
+    push ax
+    push cx
+
+    cmp aux_direction, 1
+    je return_can_turn_down
+
+    cmp dh, aceman_down
+    je cant_move_down
+
+    inc cx ; check down
+
+    call getGameObject
+    mov bx, dx
+
+    call isInsideGhostHouse ; * mutates DX
+    cmp dl, 1
+    je cant_move_down
+
+    mov dx, bx
+
+    cmp dx, 0 ; Next object is empty space
+    je can_move_down
+
+    cmp dx, 0fh 
+    jle cant_move_down ; Next object is wall
+
+    cmp dx, 15h
+    jge cant_move_down
+
+    jmp can_move_down
+
+    cant_move_down:
+        mov dh, aux_direction
+        jmp return_can_turn_down
+
+    can_move_down:
+        call GenerateRandom
+
+        cmp random, 1 ; 50% chance
+        jg cant_move_down
+
+        mov aux_direction, 1 ; no change again
+        mov dh, aceman_down
+        jmp return_can_turn_down
+
+    return_can_turn_down:
+        pop cx
+        pop ax
+    ret
+canTurnDown endp
