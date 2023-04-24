@@ -10,6 +10,16 @@ mGeneralVariables macro
     sColon db ':', "$"
     sDeveloper db "Desarrollador: Damian Pena - 202110568$"
 
+    ; report
+    sSeparator db "----------------------------------------", 0dh, 0ah, "$"
+    sType db "Tipo: $"
+    sOrientation db "Orientacion: $"
+    sDate db "Fecha: $"
+    sTime dv "Hora: $"
+    sHeader db "RANK    PLAYER  N   $"
+    sScore db "Puntaje$"
+    sTimeProp db "Tiempo$"
+
     ; Menus
 
     sLoginMenu db "1. Iniciar Sesion", 0dh, 0ah, "2. Salir", 0dh, 0ah, "F8 para crear un usuario", 0dh, 0ah, "$"
@@ -35,6 +45,13 @@ mGeneralVariables macro
     sBack db "[r] regresar", 0dh, 0ah, "$"
     sUserActivated db "Usuario activado", 0dh, 0ah, "$"
     sUserDeactivated db "Usuario desactivado", 0dh, 0ah, "$"
+    sBubbleSort db "Bubblesort", 0dh, 0ah, "$"
+    sCocktailSort db "Cocktail sort", 0dh, 0ah, "$"
+    sPrimeSort db "Primesort", 0dh, 0ah, "$"
+    sAsc db "Ascendente", 0dh, 0ah, "$"
+    sDesc db "Descendente", 0dh, 0ah, "$"
+    sVelocity db "Velocidad [1-9] $"
+    sBubbleSortExplanation db "Ordena los elementos de una lista comparando cada elemento con el siguiente y cambiandolos de posicion si estan en el orden equivocado", 0dh, 0ah, "$"
 
     logged_user_address dw 0
     logged_user_type db 0
@@ -43,6 +60,17 @@ mGeneralVariables macro
 
     Randoms1 db 0Ah,9Fh,0F0h,1Bh,69h,3Dh,0E8h,52h,0C6h,41h,0B7h,74h,23h,0ACh,8Eh,0D5h
     Randoms2 db 9Ch,0EEh,0B5h,0CAh,0AFh,0F0h,0DBh,69h,3Dh,58h,22h,06h,41h,17h,74h,83h
+
+    ; CRUD
+
+    addressArray db 28h dup(0) ; 20 addresses
+    addressSize dw 0
+    metric db 0
+    orientation db 0
+    velocity db 0
+    selected_algorithm db 0
+    i dw 0
+    j dw 0
 
 endm
 
@@ -58,6 +86,7 @@ mFilesVariables macro
     firstLevelFile db "niv1.aml",0
     secondLevelFile db "niv2.aml",0
     thirdLevelFile db "niv3.aml",0
+    top10File db "top10.txt",0
     numberReference dw 0
     selectedWall db 0
     portalNumber db 0

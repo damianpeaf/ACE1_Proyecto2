@@ -428,9 +428,15 @@ adminMenu proc
             jmp print_admin_options
 
         admin_top10_global_times:
+            call loadGlobalGames
+            mov metric, 0
+            call algorithmParams
             jmp print_admin_options
 
         admin_top10_global_scores:
+            call loadGlobalGames
+            mov metric, 1
+            call algorithmParams
             jmp print_admin_options
 
     end_admin_menu:
@@ -865,3 +871,375 @@ getHighestScore proc
 
     ret
 getHighestScore endp
+
+
+resetAddressesArray proc
+    
+    mov addressSize, 0
+    mov cx, 28h
+    mov al, 0
+    lea bx, addressArray
+
+    reset_addresses_array:
+        mov [bx], al
+        inc bx
+        loop reset_addresses_array
+
+    ret
+resetAddressesArray endp
+
+loadPersonalGames proc
+
+    call resetAddressesArray
+
+    mov bx, logged_user_address ; bx = logged user address
+
+    add bx, 4 ; bx = first game address
+
+    lea si, addressArray
+    mov ax, [bx] ; ax = first game address
+
+    load_personal_game:
+        cmp ax, 0 ; ax = 0 if is the last game
+        je end_load_personal_game
+        
+        inc addressSize ; increase address size 
+
+        mov word ptr [si], ax ; set game address
+        add si, 2 ; si = next game address
+
+        mov bx, ax ; bx = game address
+        add bx, 2 ; bx = next game address
+        mov ax, [bx] ; ax = next game address
+        jmp load_personal_game
+
+    end_load_personal_game:
+
+    ret
+loadPersonalGames endp
+
+
+loadGlobalGames proc
+    
+    call resetAddressesArray
+    mov cl, 0 ; cl = user index
+    lea di, addressArray
+
+    global_game_user_loop:
+        push di
+        call getUserByIndex
+        pop di
+
+        cmp bx, 0 ; [NULL] address
+        je end_load_global_games
+
+        inc cl ; next user
+
+        add bx, 4 ; bx = first game prop address
+        mov si, [bx] ; si = first game address
+
+        next_global_game:
+            cmp si, 0 ; bx = 0 if is the last game
+            je global_game_user_loop
+
+            inc addressSize ; increase address size
+            mov word ptr [di], si ; set game address
+
+            add di, 2 ; di = next game address
+            mov bx, si ; bx = game address
+            add bx, 2 ; bx = next game address
+            mov si, [bx] ; si = next game address
+
+            jmp next_global_game
+
+    end_load_global_games:
+    ret
+loadGlobalGames endp
+
+; Description: gets the time value from a game address
+; Input: BX = game address
+; Output: DX = time value
+getTimeFromGame proc
+    
+    push bx
+
+    add bx,6 ; bx = game difference in hundredths address
+    mov dx, [bx] ; dx = game difference in hundredths
+
+    pop bx
+
+    ret
+getTimeFromGame endp
+
+
+; Description: gets the score value from a game address
+; Input: BX = game address
+; Output: DX = score value
+getScoreFromGame proc
+    
+    push bx
+
+    add bx,4 ; bx = game score address
+    mov dx, [bx] ; dx = game score
+
+    pop bx
+
+    ret
+getScoreFromGame endp
+
+; Description: Algorithm params
+algorithmParams proc
+    
+    algorithm_selection:
+        mPrint newLine
+        mPrint sBubbleSort
+        mPrint sCocktailSort
+        mPrint sPrimeSort
+
+        mov ah, 10h
+        int 16h
+
+        cmp al, '1'
+        je bubble_sort_param
+
+        ; TODO:
+        ; cmp al, '2'
+        ; je cocktail_sort_param
+
+        ; cmp al, '3'
+        ; je prime_sort_param
+
+        mPrint invalidOption
+        mWaitForEnter
+        jmp algorithm_selection
+
+        bubble_sort_param:
+            mov selected_algorithm, 0
+            jmp orientation_selection
+
+        cocktail_sort_param:
+            mov selected_algorithm, 1
+            jmp orientation_selection
+
+        prime_sort_param:
+            mov selected_algorithm, 2
+            jmp orientation_selection
+
+        orientation_selection:
+            mPrint newLine
+            mPrint sAsc
+            mPrint sDesc
+
+            mov ah, 10h
+            int 16h
+
+            cmp al, '1'
+            je ascending_param
+
+            cmp al, '2'
+            je descending_param
+
+            mPrint invalidOption
+            mWaitForEnter
+            jmp orientation_selection
+
+            ascending_param:
+                mov orientation, 0
+
+            descending_param:
+                mov orientation, 1
+
+            velocity_selection:
+                mPrint newLine
+                mPrint sVelocity
+
+                mov ah, 10h
+                int 16h
+
+                cmp al, '0'
+                jl invalid_velocity
+
+                cmp al, '9'
+                jg invalid_velocity
+
+                sub al, '0'
+                mov velocity, al
+                jmp end_algoritm_params
+
+                invalid_velocity:
+                    mPrint invalidOption
+                    mWaitForEnter
+                    jmp velocity_selection
+
+    end_algoritm_params:
+
+    ; cmp selected_algorithm, 0
+    ; je do_bubble_sort
+
+    ; cmp selected_algorithm, 1
+    ; je do_cocktail_sort
+
+    ; cmp selected_algorithm, 2
+    ; je do_prime_sort
+
+    ; do_bubble_sort:
+    call bubbleSort
+    ret
+
+algorithmParams endp
+
+; Description: Do the bubble sort algorithm from the games addresses
+; Input: addressArray
+;        metric: 0 -> time; 1 -> score
+;        orientation: 0 -> ascending; 1 -> descending
+;        velocity: [0-9] ?
+; Output: 
+bubbleSort proc
+    
+    ; si prev address
+    ; di next address
+
+    mov cx, 1 ; i = 1
+    mov i, cx
+
+    bubble_sort_outer_loop:
+        mov cx, 0 ; j = 0
+        mov j, cx
+
+        bubble_sort_inner_loop:
+
+            ; a[j]
+            mov cx, j
+            call getValueFromIndex
+            mov ax, dx ; AX = a[j]
+
+            ; a[j+1]
+            mov cx, j
+            inc cx
+            call getValueFromIndex
+
+            ; a[j] > a[j+1] or a[j] < a[j+1]
+            cmp orientation, 0 ; ascending
+            je ascending_condition
+
+            ; - descending -
+            cmp ax, dx ; a[j] < a[j+1]
+            jl exchange_address
+            jmp next_inner_iteration
+
+            ascending_condition:
+                cmp ax, dx ; a[j] > a[j+1]
+                jg exchange_address
+                jmp next_inner_iteration
+            
+            exchange_address:
+                mov ax, j
+                mov ch, al ; ch = j
+                inc ax
+                mov cl, al ; cl = j + 1
+                call exchangeAddressFromindex
+                jmp next_inner_iteration
+
+            next_inner_iteration:
+                mov cx, j
+                inc cx
+                mov j, cx ; j++
+
+                mov ax, addressSize
+                dec ax
+
+                cmp cx, ax
+                jg next_outer_iteration
+                jmp bubble_sort_inner_loop
+
+            next_outer_iteration:
+                mov cx, i
+                inc cx
+                mov i, cx ; i++
+
+                mov ax, addressSize
+                dec ax
+
+                cmp cx, ax
+                jg end_bubble_sort
+                jmp bubble_sort_outer_loop
+
+    end_bubble_sort:
+    ret
+bubbleSort endp
+
+
+
+; Description: exchanges the values of two addresses
+; Input: ch = 1st index; cl = 2nd index
+exchangeAddressFromindex proc
+    
+    mov bl, 2
+    
+    mov al, ch
+    xor ax, ax
+    mul bl ; al = 2 * ch
+    mov ch, al ; ch = 2 * ch
+
+    mov al, cl
+    xor ax, ax
+    mul bl ; al = 2 * cl
+    mov cl, al ; cl = 2 * cl
+
+    lea si, addressArray ; * si first address
+    lea di, addressArray ; * di second address
+
+    xor bx, bx
+    mov bl, ch
+    add si, bx ; si = 1st address
+    mov dx, [si] ; dx = 1st address
+
+    xor bx, bx
+    mov bl, cl
+    add di, bx ; di = 2nd address
+    mov ax, [di] ; ax = 2nd address
+
+    mov [si], ax ; 1st address = 2nd address
+    mov [di], dx ; 2nd address = 1st address
+
+    ret
+exchangeAddressFromindex endp 
+
+
+; Description: Gets the value corresponding to a game address from index
+; Input: CX = index
+; Output: DX = value
+getValueFromIndex proc
+
+    push cx
+    push si
+    
+    lea si, addressArray
+
+    getAddressFromIndex_loop:
+        cmp cx, 0
+        je end_getAddressFromIndex
+
+        add si, 2
+        dec cx
+        jmp getAddressFromIndex_loop
+
+    end_getAddressFromIndex:
+
+    mov bx, [si]
+
+    cmp metric, 0
+    je get_time_from_game
+
+    call getScoreFromGame
+    jmp return_getAddressFromIndex
+
+    get_time_from_game:
+        call getTimeFromGame
+
+    return_getAddressFromIndex:
+    pop si
+    pop cx
+    ret
+getValueFromIndex endp
+
