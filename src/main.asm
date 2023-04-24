@@ -68,11 +68,16 @@ include crud.asm
     startGame proc
 
         mInitVideoMode
+        mov differenceTimestamp, 0
         mov levelCounter, 1
         mov aceman_hp, 3
         mov gamePoints, 0
         mov pauseGame, 0
         mov gameLost, 0
+
+        call getHighestScore
+        mov max_score, dx
+
         call getInitialTime
 
         load_level:
@@ -136,7 +141,9 @@ include crud.asm
 
         exit_game:
         mEndVideoMode
+
         ; Register score
+        call saveGame
         ret ; -> return to caller
 
         pause_menu:

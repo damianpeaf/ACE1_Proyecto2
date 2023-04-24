@@ -167,6 +167,7 @@ powerDotsLeft dw 0
 
 initialTimestamp dw 0 ; in hundredths of seconds
 elapsedTimestamp dw 0 ; in hundredths of seconds
+differenceTimestamp dw 0 ; in hundredths of seconds
 
 elapsedMinutes dw 0
 elapsedSeconds dw 0
@@ -573,6 +574,12 @@ mPauseOptions macro
             int 16h
 
             call graphGameBoard
+
+            ; compute new initial timestamp
+            call getTimeInHundreths
+            sub ax, differenceTimestamp
+            mov initialTimestamp, ax ; save initial timestamp
+
             jmp game_sequence
 
         return_input:

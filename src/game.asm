@@ -909,6 +909,7 @@ printElapsedTime proc
     call getTimeInHundreths
     sub ax, initialTimestamp 
     mov elapsedTimestamp, ax ; AX = elapsed time in hundredths
+    mov differenceTimestamp, ax ; AX = difference time in hundredths
 
     ; Get minutes
     mov bx, 1770h ; 60d * 100d = 6000d = 1770h

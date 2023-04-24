@@ -766,3 +766,102 @@ copyStringInBuffer proc
 
     ret
 copyStringInBuffer endp
+
+
+; Description: Saves the game data on the respective user
+saveGame proc
+    
+    mov bx, free_address
+
+    mov si, bx ; si = next free address
+
+    ; Set current address
+    mov [si], bx
+
+    ; set it in the user
+    mov bx, logged_user_address ; bx = logged user address
+    ; bx + 2 -> next user address
+    ; bx + 4 -> first game address
+    add bx, 4 ; bx = first game address
+
+    mov ax, [bx] ; ax = first game address
+
+    get_next_game_address:
+        cmp ax, 0 ; ax = 0 if is the last game
+        je set_game_address
+
+        mov bx, ax ; bx = game address
+        add bx, 2 ; bx = next game address
+        mov ax, [bx] ; ax = next game address
+        jmp get_next_game_address
+
+    set_game_address:
+        mov [bx], si ; set game address
+
+    ; set next game address
+    add si, 2 ; si = next game address
+    mov word ptr [si], 0 ; set next game address to 0
+
+    ; - set game data -
+
+    ; set score
+    add si, 2 ; si = game score address
+    mov ax, gamePoints
+    mov [si], ax
+
+    ; set difference in hundredths
+    add si, 2 ; si = game difference in hundredths address
+    mov ax, differenceTimestamp
+    mov [si], ax
+
+    ; set currrent level
+    add si, 2 ; si = game current level address
+    mov al, levelCounter
+    mov [si], al
+
+    inc si 
+    mov free_address, si
+
+    ret
+saveGame endp
+
+
+; Description: Gets the highest score of all games
+getHighestScore proc
+    
+    mov dx, 0 ; dx = highest score
+    mov cl, 0
+
+    search_highest_score_user:
+        call getUserByIndex
+        
+        cmp bx, 0 ; [NULL] address
+        je end_search_highest_score
+
+        inc cl ; next user
+
+        add bx, 4 ; bx = first game prop address
+        mov si, [bx] ; si = first game address
+
+        search_highest_score_game:
+            cmp si, 0 ; bx = 0 if is the last game
+            je search_highest_score_user
+
+            add si, 4 ; si = game score address
+            mov ax, [si] ; ax = game score
+
+            cmp ax, dx ; ax = highest score
+            jle not_highest_score
+
+            mov dx, ax ; dx = highest score
+
+            not_highest_score:
+            sub si, 2 ; si = next game address
+            mov bx, [si] ; bx = next game address
+            mov si, bx ; si = next game address
+            jmp search_highest_score_game
+
+    end_search_highest_score:
+
+    ret
+getHighestScore endp
