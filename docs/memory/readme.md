@@ -1,4 +1,6 @@
 ```plantuml
+@startjson
+
 {
     "users": [
         {
@@ -13,16 +15,18 @@
             "password_n": "123",
             "games": [
                 {
-                    "address": "0037h",
+                    "address_2": "0037h",
+                    "next_game_2": "0040h",
                     "points_2": "100d",
-                    "time": "100d",
-                    "next_game_2": "0050h"
+                    "time_2": "100d",
+                    "level_1": 1
                 },
                 {
                     "address": "0040h",
+                    "next_game_2": 0,
                     "points_2": "0d",
                     "time": "120d",
-                    "next_game_2": 0
+                    "level_1": 2
                 }
             ]
         },
@@ -52,4 +56,6 @@
         }
     ]
 }
+
+@endjson
 ```

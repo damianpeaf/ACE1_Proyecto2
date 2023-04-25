@@ -3,7 +3,7 @@
 mGeneralVariables macro 
 
     errorMessage db "Error: $"
-    initialMessage db  "Universidad de San Carlos de Guatemala", 0dh, 0ah,"Facultad de Ingenieria", 0dh, 0ah,"Escuela de Ciencias y Sistemas", 0dh, 0ah,"Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah,"Seccion B", 0dh, 0ah,"Damian Ignacio Pena Afre", 0dh, 0ah,"202110568", 0dh, 0ah,"Presiona ENTER", 0dh, 0ah, "$"
+    initialMessage db  "Universidad de San Carlos de Guatemala", 0dh, 0ah,"Facultad de Ingenieria", 0dh, 0ah,"Escuela de Ciencias y Sistemas", 0dh, 0ah,"Arquitectura de Compiladores y ensabladores 1", 0dh, 0ah,"Seccion B", 0dh, 0ah,"Damian Ignacio Pena Afre", 0dh, 0ah,"202110568", 0dh, 0ah, "$"
     newLine db 0ah, "$"
     whiteSpace db 20h, "$"
     carryReturn db 0dh, "$"
@@ -15,7 +15,7 @@ mGeneralVariables macro
     sType db "Tipo: $"
     sOrientation db "Orientacion: $"
     sDate db "Fecha: $"
-    sTime dv "Hora: $"
+    sTime db "Hora: $"
     sHeader db "RANK    PLAYER  N   $"
     sScore db "Puntaje$"
     sTimeProp db "Tiempo$"
@@ -52,6 +52,8 @@ mGeneralVariables macro
     sDesc db "Descendente", 0dh, 0ah, "$"
     sVelocity db "Velocidad [1-9] $"
     sBubbleSortExplanation db "Ordena los elementos de una lista comparando cada elemento con el siguiente y cambiandolos de posicion si estan en el orden equivocado", 0dh, 0ah, "$"
+    dateDelimiter db "/", "$"
+    hourDelimiter db ":", "$"
 
     logged_user_address dw 0
     logged_user_type db 0
@@ -613,5 +615,16 @@ mPauseOptions macro
 
         return_input:
             jmp options_loop
+
+endm
+
+mWriteIndDoc macro value
+
+    mov bx, filehandle
+    mov cx, sizeof value
+    dec cx ; $ is not included
+    lea dx, value
+    mov ah, 40h
+    int 21h
 
 endm

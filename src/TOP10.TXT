@@ -1,0 +1,18 @@
+----------------------------------------
+
+Universidad de San Carlos de Guatemala
+Facultad de Ingenieria
+Escuela de Ciencias y Sistemas
+Arquitectura de Compiladores y ensabladores 1
+Seccion B
+Damian Ignacio Pena Afre
+202110568
+
+----------------------------------------
+
+Desarrollador: Damian Pena - 202110568
+----------------------------------------
+
+Tipo: Bubblesort
+Orientacion: Descendente
+Fecha: 24/04/23Hora: 12:05:14

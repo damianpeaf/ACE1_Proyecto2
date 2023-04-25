@@ -52,6 +52,7 @@ data_block dw 0
 include files.asm
 include game.asm
 include crud.asm
+include reports.asm
 .startup
     
 

@@ -1084,6 +1084,8 @@ algorithmParams proc
 
     ; do_bubble_sort:
     call bubbleSort
+
+    call generateReport
     ret
 
 algorithmParams endp
