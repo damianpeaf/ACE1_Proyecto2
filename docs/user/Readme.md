@@ -89,3 +89,43 @@ En resumen, estas son las reglas del juego:
 * Los fantasmas reaparecerán en su casa después de ser comidos, pero no serán comestibles después de salir de ella.
 * Hay portales en el laberinto que permiten a Aceman pasar de una parte del laberinto a otra.
 * Antes de comenzar el nivel, se debe mostrar la descripción de los puntos a otorgar por cada elemento, el puntaje actual, el nivel, las vidas, el nombre del jugador y el del desarrollador.
+
+
+# **Reportes**
+
+Es posible generar un reporte `.txt` donde se puede seleccionar distintas métricas, ya sea por usuario o globalmente o también tiempo o puntaje. Los reportes tienen esta estructura:
+
+``` 
+----------------------------------------
+
+Universidad de San Carlos de Guatemala
+Facultad de Ingenieria
+Escuela de Ciencias y Sistemas
+Arquitectura de Compiladores y ensabladores 1
+Seccion B
+Damian Ignacio Pena Afre
+202110568
+
+----------------------------------------
+
+Desarrollador: Damian Pena - 202110568
+----------------------------------------
+
+Tipo: Bubblesort
+Orientacion: Ascendente
+Fecha: 27/04/23
+Hora: 13:32:22
+----------------------------------------
+RANK    PLAYER  N   Tiempo
+----------------------------------------
+01    202110568 1   000001
+02    202110568 1   000002
+03    202110568 1   000002
+04    202110568 1   000002
+05    202110568 1   000003
+06    202110568 1   000005
+07    202110568 1   000007
+08    202110568 1   000007
+09    202110568 1   000008
+10    202110568 1   000009
+```

@@ -174,26 +174,26 @@ initGhosts proc
     mov yellow_ghost_x, ax
     mov yellow_ghost_y, cx
 
-    mov ax, 15
-    mov cx, 0ch
+    mov ax, 15 ; 21d
+    mov cx, 0ch ; 12d
     mov pink_ghost_x, ax
     mov pink_ghost_y, cx
 
     ; other vars
 
-    mov red_ghost_direction, aceman_no_direction
+    mov red_ghost_direction, aceman_right
     mov is_red_ghost_eatable, 0 
     mov is_red_ghost_in_house, 1
 
-    mov cyan_ghost_direction, aceman_no_direction
+    mov cyan_ghost_direction, aceman_right
     mov is_cyan_ghost_eatable, 0
     mov is_cyan_ghost_in_house, 1
 
-    mov yellow_ghost_direction, aceman_no_direction
+    mov yellow_ghost_direction, aceman_left
     mov is_yellow_ghost_eatable, 0
     mov is_yellow_ghost_in_house, 1
 
-    mov pink_ghost_direction, aceman_no_direction
+    mov pink_ghost_direction, aceman_left
     mov is_pink_ghost_eatable, 0
     mov is_pink_ghost_in_house, 1
 
@@ -843,16 +843,16 @@ isInsideGhostHouse proc
     mov dl, 0 ; not inside ghost house
 
     ; House coords: x = 13h - 15h & y = 0ah - 0ch
-    cmp ax, 13h
+    cmp ax, 12h
     jl not_inside_ghost_house
 
-    cmp ax, 15h
+    cmp ax, 16h
     jg not_inside_ghost_house
 
-    cmp cx, 0ah
+    cmp cx, 09h
     jl not_inside_ghost_house
 
-    cmp cx, 0ch
+    cmp cx, 0dh
     jg not_inside_ghost_house
 
     mov dl, 1 ; inside ghost house
@@ -1189,11 +1189,11 @@ GenerateRandom endp
 ; Output: Nonve
 moveGhosts proc
     
-    mEvalReleaseGhost is_red_ghost_in_house, red_ghost_x, red_ghost_y, red_ghost_direction
-    mEvalReleaseGhost is_cyan_ghost_in_house, cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
-    mEvalReleaseGhost is_pink_ghost_in_house, pink_ghost_x, pink_ghost_y, pink_ghost_direction
-    mEvalReleaseGhost is_yellow_ghost_in_house, yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
-    no_more_evals:
+    ; mEvalReleaseGhost is_red_ghost_in_house, red_ghost_x, red_ghost_y, red_ghost_direction
+    ; mEvalReleaseGhost is_cyan_ghost_in_house, cyan_ghost_x, cyan_ghost_y, cyan_ghost_direction
+    ; mEvalReleaseGhost is_pink_ghost_in_house, pink_ghost_x, pink_ghost_y, pink_ghost_direction
+    ; mEvalReleaseGhost is_yellow_ghost_in_house, yellow_ghost_x, yellow_ghost_y, yellow_ghost_direction
+    ; no_more_evals:
 
     ; Movement
 
@@ -1573,19 +1573,16 @@ canTurnLeft proc
     cmp aux_direction, 1
     je return_can_turn_left
 
-    cmp dh, aceman_left
+    cmp dh, aceman_right
     je cant_move_left
 
     dec ax ; check left
 
+    ; call isInsideGhostHouse ; * mutates DX
+    ; cmp dl, 1
+    ; je cant_move_left
+
     call getGameObject
-    mov bx, dx
-
-    call isInsideGhostHouse ; * mutates DX
-    cmp dl, 1
-    je cant_move_left
-
-    mov dx, bx
 
     cmp dx, 0 ; Next object is empty space
     je can_move_left
@@ -1607,7 +1604,7 @@ canTurnLeft proc
         call GenerateRandom
 
         cmp random, 1 ; 50% chance
-        jg cant_move_left
+        jge cant_move_left
 
         mov aux_direction, 1 ; no change again
         mov dh, aceman_left
@@ -1631,7 +1628,7 @@ canTurnRight proc
     cmp aux_direction, 1
     je return_can_turn_right
 
-    cmp dh, aceman_right
+    cmp dh, aceman_left
     je cant_move_right
 
     inc ax ; check right
@@ -1639,9 +1636,9 @@ canTurnRight proc
     call getGameObject
     mov bx, dx
 
-    call isInsideGhostHouse ; * mutates DX
-    cmp dl, 1
-    je cant_move_right
+    ; call isInsideGhostHouse ; * mutates DX
+    ; cmp dl, 1
+    ; je cant_move_right
 
     mov dx, bx
 
@@ -1664,7 +1661,7 @@ canTurnRight proc
         call GenerateRandom
 
         cmp random, 1 ; 50% chance
-        jg cant_move_right
+        jge cant_move_right
 
         mov aux_direction, 1 ; no change again
         mov dh, aceman_right
@@ -1688,7 +1685,7 @@ canTurnUp proc
     cmp aux_direction, 1
     je return_can_turn_up
 
-    cmp dh, aceman_up
+    cmp dh, aceman_down
     je cant_move_up
 
     dec cx ; check up
@@ -1696,9 +1693,9 @@ canTurnUp proc
     call getGameObject
     mov bx, dx
 
-    call isInsideGhostHouse ; * mutates DX
-    cmp dl, 1
-    je cant_move_up
+    ; call isInsideGhostHouse ; * mutates DX
+    ; cmp dl, 1
+    ; je cant_move_up
 
     mov dx, bx
 
@@ -1721,7 +1718,7 @@ canTurnUp proc
         call GenerateRandom
 
         cmp random, 1 ; 50% chance
-        jg cant_move_up
+        jge cant_move_up
 
         mov aux_direction, 1 ; no change again
         mov dh, aceman_up
@@ -1745,7 +1742,7 @@ canTurnDown proc
     cmp aux_direction, 1
     je return_can_turn_down
 
-    cmp dh, aceman_down
+    cmp dh, aceman_up
     je cant_move_down
 
     inc cx ; check down
@@ -1753,9 +1750,9 @@ canTurnDown proc
     call getGameObject
     mov bx, dx
 
-    call isInsideGhostHouse ; * mutates DX
-    cmp dl, 1
-    je cant_move_down
+    ; call isInsideGhostHouse ; * mutates DX
+    ; cmp dl, 1
+    ; je cant_move_down
 
     mov dx, bx
 
@@ -1778,7 +1775,7 @@ canTurnDown proc
         call GenerateRandom
 
         cmp random, 1 ; 50% chance
-        jg cant_move_down
+        jge cant_move_down
 
         mov aux_direction, 1 ; no change again
         mov dh, aceman_down

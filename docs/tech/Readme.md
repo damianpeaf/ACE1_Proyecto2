@@ -528,3 +528,95 @@ startGame proc
 Este procedemiento se ve descrito por el siguiente diagrama:
 
 ![Inicio](./images/diagram.png)
+
+
+`bubbleSort`
+
+El código que has proporcionado es un procedimiento escrito en lenguaje ensamblador (Assembly) que implementa el algoritmo de ordenamiento Bubble Sort. El Bubble Sort es un algoritmo simple pero ineficiente que ordena una lista comparando pares adyacentes de elementos y intercambiándolos si están en el orden incorrecto. Este proceso se repite hasta que la lista esté ordenada.
+
+El procedimiento comienza definiendo algunas variables, como i, j, y cx. i e j son contadores que se usan para iterar sobre los elementos de la lista, y cx se usa para almacenar valores temporales.
+
+El bucle exterior bubble_sort_outer_loop itera sobre la lista completa, y el bucle interior bubble_sort_inner_loop itera sobre pares adyacentes de elementos. La comparación y el intercambio de elementos se realizan en el bucle interior.
+
+La instrucción call getValueFromIndex se usa para obtener los valores de los elementos a[j] y a[j+1] de la lista. Estos valores se comparan y se intercambian si es necesario. Si la lista se está ordenando en orden ascendente, los elementos se intercambian si a[j] es mayor que a[j+1]. Si la lista se está ordenando en orden descendente, los elementos se intercambian si a[j] es menor que a[j+1].
+
+Después de comparar y posiblemente intercambiar los elementos, el bucle interior bubble_sort_inner_loop continúa iterando hasta que se hayan comparado y posiblemente intercambiado todos los pares de elementos en la lista. Luego, el bucle exterior bubble_sort_outer_loop avanza a la siguiente iteración y repite el proceso.
+
+Una vez que la lista está ordenada, el procedimiento termina y devuelve el control al programa principal.
+
+```asm 
+
+bubbleSort proc
+    
+    ; si prev address
+    ; di next address
+
+    mov cx, 1 ; i = 1
+    mov i, cx
+
+    bubble_sort_outer_loop:
+        mov cx, 0 ; j = 0
+        mov j, cx
+
+        bubble_sort_inner_loop:
+
+            ; a[j]
+            mov cx, j
+            call getValueFromIndex
+            mov ax, dx ; AX = a[j]
+
+            ; a[j+1]
+            mov cx, j
+            inc cx
+            call getValueFromIndex
+
+            ; a[j] > a[j+1] or a[j] < a[j+1]
+            cmp orientation, 0 ; ascending
+            je ascending_condition
+
+            ; - descending -
+            cmp ax, dx ; a[j] < a[j+1]
+            jl exchange_address
+            jmp next_inner_iteration
+
+            ascending_condition:
+                cmp ax, dx ; a[j] > a[j+1]
+                jg exchange_address
+                jmp next_inner_iteration
+            
+            exchange_address:
+                mov ax, j
+                mov ch, al ; ch = j
+                inc ax
+                mov cl, al ; cl = j + 1
+                call exchangeAddressFromindex
+                jmp next_inner_iteration
+
+            next_inner_iteration:
+                mov cx, j
+                inc cx
+                mov j, cx ; j++
+
+                mov ax, addressSize
+                dec ax
+
+                cmp cx, ax
+                jl bubble_sort_inner_loop
+
+            next_outer_iteration:
+                mov cx, i
+                inc cx
+                mov i, cx ; i++
+
+                mov ax, addressSize
+                ; dec ax
+
+                cmp cx, ax
+                jl bubble_sort_outer_loop
+                ; jg end_bubble_sort
+
+    end_bubble_sort:
+    ret
+bubbleSort endp
+
+```

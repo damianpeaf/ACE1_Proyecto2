@@ -324,31 +324,31 @@ mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
     cmp in_house, 1
     jne end_evaluating_ghost
 
-    ; Ghost is in house
+    ; ; Ghost is in house
 
-    call GenerateRandom
-    cmp random, 5
-    jne no_more_evals
+    ; call GenerateRandom
+    ; cmp random, 5
+    ; jne no_more_evals
 
-    mov in_house, 0
+    ; mov in_house, 0
 
-    ; Change position
+    ; ; Change position
 
-    ; ghost house x=20d y=09d
-    push ax
-    push cx
-    push di
-    ; delete sprite from ghost house
-    mov ax, x_pos
-    mov cx, y_pos
-    lea di, sprite_walls
-    call paintSprite
+    ; ; ghost house x=20d y=09d
+    ; push ax
+    ; push cx
+    ; push di
+    ; ; delete sprite from ghost house
+    ; mov ax, x_pos
+    ; mov cx, y_pos
+    ; lea di, sprite_walls
+    ; call paintSprite
 
-    mov ax, 14h ; 20d
-    mov x_pos, ax
+    ; mov ax, 14h ; 20d
+    ; mov x_pos, ax
 
-    mov ax, 09h ; 9d
-    mov y_pos, ax
+    ; mov ax, 09h ; 9d
+    ; mov y_pos, ax
 
     compute_direction_random:
 
@@ -374,9 +374,9 @@ mEvalReleaseGhost macro in_house, x_pos, y_pos, direction
 
     end_initial_direction:
 
-    pop di
-    pop cx
-    pop ax
+    ; pop di
+    ; pop cx
+    ; pop ax
 
     jmp no_more_evals
     end_evaluating_ghost:
@@ -435,9 +435,9 @@ mEvalGhostMovement macro x_pos, y_pos, direction
         call getGameObject
         mov bx, dx
 
-        call isInsideGhostHouse ; * mutates DX
-        cmp dl, 1
-        je not_move_ghost
+        ; call isInsideGhostHouse ; * mutates DX
+        ; cmp dl, 1
+        ; je not_move_ghost
 
         mov dx, bx
 
@@ -574,7 +574,7 @@ mEvalGhostCollission macro pos_x, pos_y, eatable, is_in_house, direction
     mov pos_x, ax
     mov ax, house_return_y
     mov pos_y, ax
-    mov direction, aceman_no_direction
+    mov direction, aceman_left
 
     jmp no_ghost_collission
     decrease_lives:

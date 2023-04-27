@@ -155,6 +155,7 @@ include reports.asm
     startGame endp
 
 end_program:
+    call memoryReport
     mov al, 0c
     mov ah, 4ch                         
     int 21h

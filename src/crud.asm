@@ -486,15 +486,27 @@ subAdminMenu proc
             jmp print_subadmin_options
 
         subadmin_top10_personal_times:
+            call loadPersonalGames
+            mov metric, 0
+            call algorithmParams
             jmp print_subadmin_options
 
         subadmin_top10_personal_scores:
+            call loadPersonalGames
+            mov metric, 1
+            call algorithmParams
             jmp print_subadmin_options
 
         subadmin_top10_global_times:
+            call loadGlobalGames
+            mov metric, 0
+            call algorithmParams
             jmp print_subadmin_options
 
         subadmin_top10_global_scores:
+            call loadGlobalGames
+            mov metric, 1
+            call algorithmParams
             jmp print_subadmin_options
 
     end_subadmin_menu:
@@ -535,9 +547,15 @@ userMenu proc
             jmp print_user_options
 
         user_top10_personal_times:
+            call loadPersonalGames
+            mov metric, 0
+            call algorithmParams
             jmp print_user_options
 
         user_top10_personal_scores:
+            call loadPersonalGames
+            mov metric, 1
+            call algorithmParams
             jmp print_user_options
 
     end_user_menu:
@@ -902,7 +920,6 @@ loadPersonalGames proc
     call resetAddressesArray
 
     mov bx, logged_user_address ; bx = logged user address
-
     add bx, 4 ; bx = first game address
 
     lea si, addressArray
@@ -911,7 +928,6 @@ loadPersonalGames proc
     load_personal_game:
         cmp ax, 0 ; ax = 0 if is the last game
         je end_load_personal_game
-        
         inc addressSize ; increase address size 
 
         mov word ptr [si], ax ; set game address
@@ -1110,6 +1126,9 @@ bubbleSort proc
     
     ; si prev address
     ; di next address
+
+    cmp addressSize, 1
+    jle end_bubble_sort
 
     mov cx, 1 ; i = 1
     mov i, cx
