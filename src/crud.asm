@@ -100,6 +100,8 @@ createUser proc
     ; mPrintAddress di
     ; mWaitForEnter
 
+    call memoryReport
+
     ret
 createUser endp
 
@@ -825,8 +827,15 @@ saveGame proc
     mov al, levelCounter
     mov [si], al
 
+    ; set user address
     inc si 
+    mov bx, logged_user_address ; bx = logged user address
+    mov [si], bx
+
+    add si, 2 ; si = next free address
     mov free_address, si
+
+    call memoryReport
 
     ret
 saveGame endp
@@ -1045,6 +1054,7 @@ algorithmParams proc
 
             ascending_param:
                 mov orientation, 0
+                jmp velocity_selection
 
             descending_param:
                 mov orientation, 1
@@ -1151,8 +1161,7 @@ bubbleSort proc
                 dec ax
 
                 cmp cx, ax
-                jg next_outer_iteration
-                jmp bubble_sort_inner_loop
+                jl bubble_sort_inner_loop
 
             next_outer_iteration:
                 mov cx, i
@@ -1160,11 +1169,11 @@ bubbleSort proc
                 mov i, cx ; i++
 
                 mov ax, addressSize
-                dec ax
+                ; dec ax
 
                 cmp cx, ax
-                jg end_bubble_sort
-                jmp bubble_sort_outer_loop
+                jl bubble_sort_outer_loop
+                ; jg end_bubble_sort
 
     end_bubble_sort:
     ret
@@ -1178,13 +1187,15 @@ exchangeAddressFromindex proc
     
     mov bl, 2
     
-    mov al, ch
     xor ax, ax
+    xor dx, dx
+    mov al, ch
     mul bl ; al = 2 * ch
     mov ch, al ; ch = 2 * ch
 
-    mov al, cl
     xor ax, ax
+    xor dx, dx
+    mov al, cl
     mul bl ; al = 2 * cl
     mov cl, al ; cl = 2 * cl
 
@@ -1215,6 +1226,7 @@ getValueFromIndex proc
 
     push cx
     push si
+    push bx
     
     lea si, addressArray
 
@@ -1240,6 +1252,7 @@ getValueFromIndex proc
         call getTimeFromGame
 
     return_getAddressFromIndex:
+    pop bx
     pop si
     pop cx
     ret

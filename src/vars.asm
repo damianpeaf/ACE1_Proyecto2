@@ -9,6 +9,7 @@ mGeneralVariables macro
     carryReturn db 0dh, "$"
     sColon db ':', "$"
     sDeveloper db "Desarrollador: Damian Pena - 202110568$"
+    sSpace db " ", "$"
 
     ; report
     sSeparator db "----------------------------------------", 0dh, 0ah, "$"
@@ -19,6 +20,33 @@ mGeneralVariables macro
     sHeader db "RANK    PLAYER  N   $"
     sScore db "Puntaje$"
     sTimeProp db "Tiempo$"
+
+
+    sPumlHeader db "```plantuml", 0dh, 0ah, "@startjson", 0dh, 0ah, "{", 0dh, 0ah, '"data_block": [', 0dh, 0ah, "$"
+    sPumlFooter db "]", 0dh, 0ah, "}", 0dh, 0ah, "@endjson", 0dh, 0ah, "```", 0dh, 0ah, "$"
+    sMemoryAddress db '"address_2": $'
+    sMemoryNextUser db '"next_user_2": $'
+    sMemoryFirstGame db '"first_game_2": $'
+    sMemoryUserType db '"type_1": $'
+    sMemoryUserActive db '"active_1": $'
+    sMemoryUsernameLength db '"name_size_1": $'
+    sMemoryUsername db '"name_n": $'
+    sMemoryPasswordLength db '"password_size_1": $'
+    sMemoryPassword db '"password_n": $'
+    sMemoryGames db '"games": $'
+    sMemoryUsers db '"users": $'
+    sMemoryNextGame db '"next_game_2": $'
+    sMemoryPoints db '"points_2": $'
+    sMemoryTime db '"time_2": $'
+    sMemoryLevel db '"level_1": $'
+    sMemoryUserAddress db '"user_address_2": $'
+    sMemoryLBrace db "{", 0dh, 0ah, "$"
+    sMemoryRBrace db "}", 0dh, 0ah, "$"
+    sMemoryLBracket db "[", 0dh, 0ah, "$"
+    sMemoryRBracket db "]", 0dh, 0ah, "$"
+    sMemoryComma db ",", 0dh, 0ah, "$"
+    sMemoryColon db ":", 0dh, 0ah, "$"
+    sMemoryQuote db '"', "$"
 
     ; Menus
 
@@ -89,6 +117,7 @@ mFilesVariables macro
     secondLevelFile db "niv2.aml",0
     thirdLevelFile db "niv3.aml",0
     top10File db "top10.txt",0
+    memoryReportFile db "memory_report.md",0
     numberReference dw 0
     selectedWall db 0
     portalNumber db 0
@@ -620,11 +649,33 @@ endm
 
 mWriteIndDoc macro value
 
+    push bx
     mov bx, filehandle
     mov cx, sizeof value
     dec cx ; $ is not included
     lea dx, value
     mov ah, 40h
     int 21h
+    pop bx
+
+endm
+
+mWriteValueInDoc macro value, size
+
+    push bx
+    push cx
+    push dx
+    push ax
+
+    mov bx, filehandle
+    mov cx, size
+    mov dx, value
+    mov ah, 40h
+    int 21h
+
+    pop ax
+    pop dx
+    pop cx
+    pop bx
 
 endm
