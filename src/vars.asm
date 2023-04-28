@@ -82,6 +82,8 @@ mGeneralVariables macro
     sBubbleSortExplanation db "Ordena los elementos de una lista comparando cada elemento con el siguiente y cambiandolos de posicion si estan en el orden equivocado", 0dh, 0ah, "$"
     dateDelimiter db "/", "$"
     hourDelimiter db ":", "$"
+    sAlgoSpeed db "Speed: $"
+    sSortEnded db "Ordenado", "$"
 
     logged_user_address dw 0
     logged_user_type db 0
@@ -93,7 +95,7 @@ mGeneralVariables macro
 
     ; CRUD
 
-    addressArray db 28h dup(0) ; 20 addresses
+    addressArray db 0c8h dup(0) ; 20 addresses
     addressSize dw 0
     metric db 0
     orientation db 0
@@ -101,6 +103,8 @@ mGeneralVariables macro
     selected_algorithm db 0
     i dw 0
     j dw 0
+    printX db 0
+    printY db 0
 
 endm
 

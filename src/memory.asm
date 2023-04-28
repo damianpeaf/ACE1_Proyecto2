@@ -2,10 +2,10 @@
 mMemoryBlocks macro
 
     ; Admin data
-    ; admin_username db "123"
-    ; admin_password db "123"
-    admin_username db "202110568"
-    admin_password db "3344112111301"
+    admin_username db "123"
+    admin_password db "123"
+    ; admin_username db "202110568"
+    ; admin_password db "3344112111301"
 
     ; User type
     admin_type equ 1

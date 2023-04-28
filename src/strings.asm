@@ -1,6 +1,7 @@
 mStringVariables macro
     numberString db 6 dup ("$")
     numberStringEnd db "$"
+    xd db "$"
     
     numberRepresentationError db "El numero no puede ser representado", 0dh, 0ah, "$"
     

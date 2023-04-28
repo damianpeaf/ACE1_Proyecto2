@@ -1109,8 +1109,14 @@ algorithmParams proc
     ; je do_prime_sort
 
     ; do_bubble_sort:
-    call bubbleSort
 
+    mPrint newLine
+    mPrint newLine
+    mPrint sBubbleSortExplanation
+    mWaitForEnter
+    call initAnimation
+    call bubbleSort
+    call sortAnimationEnd
     call generateReport
     ret
 
@@ -1138,6 +1144,8 @@ bubbleSort proc
         mov j, cx
 
         bubble_sort_inner_loop:
+
+            call sortAnimation ;?
 
             ; a[j]
             mov cx, j
@@ -1177,7 +1185,10 @@ bubbleSort proc
                 mov j, cx ; j++
 
                 mov ax, addressSize
-                dec ax
+                ; dec ax
+
+                mov bx, i
+                sub ax, bx
 
                 cmp cx, ax
                 jl bubble_sort_inner_loop
@@ -1277,3 +1288,235 @@ getValueFromIndex proc
     ret
 getValueFromIndex endp
 
+
+initAnimation proc
+
+    mInitVideoMode
+
+    ; Write sort algorithm name
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 0 ; row
+    mov dl, 0 ; column
+    int 10h
+
+    mPrint sBubbleSort
+
+
+    ; Write sort algorithm direction
+    lea di, sprite_arrow_up
+    cmp orientation, 0
+    je paint_algo_direction
+
+    lea di, sprite_arrow_down
+
+    paint_algo_direction:
+    mov ax, 0bh 
+    mov cx, 0
+    call paintSprite
+
+    ; Write sort algorithm velocity
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 0 ; row
+    mov dl, 0fh ; column
+    int 10h
+
+    mPrint sAlgoSpeed
+    xor ax, ax
+    mov al, velocity
+    call numberToString
+    lea si, numberString
+    add si, 5 ; last character
+    mPrintAddress si
+
+
+    ; time of the animation
+    call getInitialTime
+    call printElapsedTime
+
+    ; write metric
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 18h ; row
+    mov dl, 1 ; column
+    int 10h
+
+    cmp metric, 0
+    je paint_metric_time
+
+    mPrint sScore
+    jmp paint_metric_end
+
+    paint_metric_time:	
+    mPrint sTimeProp
+
+    paint_metric_end:
+
+    ; Start animation
+    mWaitForEnter
+    call getInitialTime
+    ret
+initAnimation endp
+
+
+sortAnimation proc
+    
+    push ax
+    push bx
+    push cx
+    push dx
+
+    call printElapsedTime
+
+    mov cx, 0 ; index
+    
+    sortAnimation_loop:
+        cmp cx, addressSize
+        jge end_sortAnimation
+
+        push cx
+        call getValueFromIndex
+        mov ax, dx ; AX = a[j]
+        call numberToString
+
+
+        ; compute print indexes
+
+        call computePrintPostion
+        add dl, 2 ; initial index
+        mov ah, 02h 
+        mov bh, 0
+        int 10h
+
+        mPrint numberString
+
+        pop cx
+
+
+        ; print arrows
+
+        push cx
+
+        mov cx, j ; index
+        call computePrintPostion
+
+        xor ax, ax
+        xor cx, cx
+        mov al, dl ; row
+        mov cl, dh ; column
+        lea di, sprite_arrow_right
+        call paintSprite
+
+        mov cx, j
+        inc cx
+        call computePrintPostion
+
+        xor ax, ax
+        xor cx, cx
+        mov al, dl ; row
+        mov cl, dh ; column
+        lea di, sprite_arrow_right
+        call paintSprite
+
+        pop cx
+        inc cx
+        jmp sortAnimation_loop
+
+    end_sortAnimation:
+        ; Delay
+        call defaultDelay
+
+        ; Clear arrows
+
+        mov cx, j ; index
+        call computePrintPostion
+
+        xor ax, ax
+        xor cx, cx
+        mov al, dl ; row
+        mov cl, dh ; column
+        lea di, sprite_walls
+        call paintSprite
+
+        mov cx, j
+        inc cx
+        call computePrintPostion
+
+        xor ax, ax
+        xor cx, cx
+        mov al, dl ; row
+        mov cl, dh ; column
+        lea di, sprite_walls
+        call paintSprite
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    ret
+sortAnimation endp
+
+
+; Input: CX = index of the array
+; Output: DH = row; DL = column
+computePrintPostion proc
+    
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov bx, 14 ; max rows
+    ; mov bx, 3h ; max rows
+    xor dx, dx
+    mov ax, cx
+    div bx ; AX = quotient; DX = remainder
+    ; AX is the column
+
+    push ax
+    mov printX, 0 ; base column
+    mov bx, 8h ; column separation
+    xor dx, dx
+    mul bx ; AX = quotient * column separation <-> col index * offset
+    xor dx, dx
+    mov dl, printX
+    add dx, ax
+    mov printX, dl
+    pop ax
+
+    mov bx, 14 ; max rows
+    ; mov bx, 3h ; max rows
+    xor dx, dx
+    mul bx ; AX = quotient * max rows
+    sub cx, ax ; CX = rows
+
+    add cx, 2 ; base row
+    mov printY, cl
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    mov dh, printY
+    mov dl, printX
+
+    ret
+computePrintPostion endp
+
+sortAnimationEnd proc
+
+    mov ah, 02h 
+    mov bh, 0
+    mov dh, 18h ; row
+    mov dl, 12 ; column
+    int 10h
+
+    mPrint sSortEnded
+
+    mWaitForEnter
+    mEndVideoMode
+
+    ret
+sortAnimationEnd endp
