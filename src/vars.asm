@@ -84,6 +84,7 @@ mGeneralVariables macro
     hourDelimiter db ":", "$"
     sAlgoSpeed db "Speed: $"
     sSortEnded db "Ordenado", "$"
+    baseAnimationDelay dw 320h ;
 
     logged_user_address dw 0
     logged_user_type db 0

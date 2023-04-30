@@ -1425,7 +1425,7 @@ sortAnimation proc
 
     end_sortAnimation:
         ; Delay
-        call defaultDelay
+        call animationDelay
 
         ; Clear arrows
 
@@ -1520,3 +1520,43 @@ sortAnimationEnd proc
 
     ret
 sortAnimationEnd endp
+
+animationDelay proc
+
+    push bp
+    push si
+    push ax
+    push bx
+    push dx
+
+    mov ax, baseAnimationDelay
+    xor bx, bx
+    mov bl, velocity
+    xor dx, dx
+    div bx
+
+    mov BP, ax
+    animation_delay_loop_b:		
+        mov SI, ax
+    animation_delay_loop_a:		
+        dec SI
+		cmp SI, 00
+		jne animation_delay_loop_a
+		dec BP
+		cmp BP, 00
+		jne animation_delay_loop_b
+
+
+        pop dx
+        pop bx
+        pop ax
+        pop si
+        pop bp
+		ret
+animationDelay endp
+
+; Description: writes the data of the data block in the file
+; persistanceFile proc
+    
+;     ret
+; persistanceFile endp
