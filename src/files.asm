@@ -417,7 +417,7 @@ checkNumber proc
     cmp al, '-'
     je negative
 
-    mov [negativeNumber], 0
+    mov negativeNumber, 0
 
     eval_digit:
         mov al, [si] ; Load character
@@ -458,7 +458,7 @@ checkNumber proc
     num_reference:
         mov dx, 1
         pop ax ; Restore prev value SI on AX, modify SI
-        mov ax, [numberReference]
+        mov ax, numberReference
         jmp end_check_number
 
     no_num_reference:
@@ -467,7 +467,7 @@ checkNumber proc
         jmp end_check_number
 
     negative:
-        mov [negativeNumber], 1
+        mov negativeNumber, 1
         inc si ; Skip the negative sign
         jmp eval_digit
 

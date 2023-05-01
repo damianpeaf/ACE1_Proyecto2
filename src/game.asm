@@ -1027,12 +1027,12 @@ numberToString proc
     
     mov cx, 0
     ; Comparte if its a negative number
-    mov [negativeNumber], 0
+    mov negativeNumber, 0
     cmp ax, 0
     jge convert_positive
 
     convert_negative:
-        mov [negativeNumber], 1 ; Set the negative number flag to 1
+        mov negativeNumber, 1 ; Set the negative number flag to 1
         inc cx
 
         ; Convert to positive
@@ -1073,7 +1073,7 @@ numberToString proc
     set_negative:
 
     ; If the number is negative, add the '-' sign
-    cmp [negativeNumber], 1
+    cmp negativeNumber, 1
     jne set_digit
     mov numberString[si], '-'
     inc si
