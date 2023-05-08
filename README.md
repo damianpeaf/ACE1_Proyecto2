@@ -3,3 +3,8 @@
 ## Proyecto 2 - Arquitectura de computadores y ensambladores 1
 
 `Damián Ignacio Peña Afre 202110568`
+
+
+## Demo
+
+![Demo](Pacman.gif)
